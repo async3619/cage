@@ -1,5 +1,8 @@
+import { Logger } from "./utils/logger";
+
 async function main() {
-    console.log("Hello World from Cage! 🐦");
+    Logger.clear();
+    Logger.info("Hello World from Cage! 🐦");
 }
 
 main();
