@@ -16,7 +16,7 @@
         "test:watch": "jest --watch"
     },
     "bin": {
-        "solv": "./bin/solv.cjs"
+        "cage": "./bin/cage.cjs"
     },
     "files": [
         "dist",
