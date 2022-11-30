@@ -3,5 +3,5 @@
     "ignore": ["*.test.js", "bin", "dist", ".git"],
     "watch": ["src"],
     "ext": "ts",
-    "exec": "ts-node ./src/index.ts"
+    "exec": "node -r ts-node/register -r dotenv/config -r tsconfig-paths/register ./src/index.ts"
 }

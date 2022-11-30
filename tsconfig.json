@@ -20,7 +20,13 @@
         "noImplicitAny": false,
         "strictBindCallApply": true,
         "forceConsistentCasingInFileNames": false,
-        "noFallthroughCasesInSwitch": false
+        "noFallthroughCasesInSwitch": false,
+        "paths": {
+            "@root/*": ["./src/*"],
+            "@utils/*": ["./src/utils/*"],
+            "@watchers/*": ["./src/watchers/*"],
+            "@watchers": ["./src/watchers"]
+        }
     },
     "exclude": ["node_modules", "**/*spec.ts", "./*.ts"]
 }
