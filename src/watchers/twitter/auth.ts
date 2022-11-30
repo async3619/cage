@@ -3,14 +3,12 @@ import { Fn } from "@utils/type";
 
 export class TwitterAuth {
     private readonly tasks: Array<Fn<[], Promise<void>>> = [];
-    private csrf: string | null = null;
     private flowToken = "";
 
     public constructor(
         private readonly fetcher: Fetcher,
         private readonly getHeaders: Fn<[], Record<string, string>>,
         private readonly guestTokenHandler: Fn<[string], void>,
-        private readonly csrfHandler: Fn<[string], void>,
     ) {}
 
     public doInstrumentation() {
@@ -121,7 +119,6 @@ export class TwitterAuth {
             );
 
             this.flowToken = data.flow_token;
-            this.csrf = this.fetcher.getCookies()["ct0"] || this.csrf;
         });
 
         return this;
@@ -199,11 +196,5 @@ export class TwitterAuth {
         for (const task of this.tasks) {
             await task();
         }
-
-        if (!this.csrf) {
-            throw new Error("CSRF token not found");
-        }
-
-        this.csrfHandler(this.csrf);
     }
 }

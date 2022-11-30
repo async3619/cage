@@ -1,8 +1,9 @@
 import fetch, { Headers, RequestInit, Response } from "node-fetch";
 
 import { parseCookie } from "@utils/parseCookie";
+import { Hydratable, Serializable } from "@utils/type";
 
-export class Fetcher {
+export class Fetcher implements Serializable, Hydratable {
     private readonly cookies: Record<string, string> = {};
 
     private getCookieString(): string {
@@ -41,5 +42,16 @@ export class Fetcher {
 
         this.setCookies(response.headers.get("set-cookie"));
         return response;
+    }
+
+    public serialize(): Record<string, any> {
+        return {
+            cookies: this.cookies,
+        };
+    }
+    public hydrate(data: Record<string, any>): void {
+        Object.keys(data.cookies).forEach(key => {
+            this.cookies[key] = data.cookies[key];
+        });
     }
 }

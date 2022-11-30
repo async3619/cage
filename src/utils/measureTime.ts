@@ -2,10 +2,23 @@ import * as dayjs from "dayjs";
 
 import { Work } from "@utils/type";
 
-export async function measureTime(work: Work) {
-    const startedAt = dayjs();
-    await work();
-    const endedAt = dayjs();
+interface MeasureTimeResult {
+    readonly elapsedTime: number;
+    readonly exception?: Error;
+}
 
-    return endedAt.diff(startedAt);
+export async function measureTime(work: Work): Promise<MeasureTimeResult> {
+    const startedAt = dayjs();
+    try {
+        await work();
+    } catch (e) {
+        return {
+            elapsedTime: dayjs().diff(startedAt),
+            exception: e as Error,
+        };
+    }
+
+    return {
+        elapsedTime: dayjs().diff(startedAt),
+    };
 }

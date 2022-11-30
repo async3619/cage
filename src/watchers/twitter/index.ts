@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-empty-function */
 import { BaseWatcher } from "@watchers/base";
 import { TwitterHelper } from "@watchers/twitter/helper";
 
-import { ProviderInitializeContext } from "@utils/type";
+import { Follower, ProviderInitializeContext } from "@utils/type";
 
 export type TWITTER_PROVIDER_ENV_KEYS = "TWITTER_USER_ID" | "TWITTER_PASSWORD";
 
@@ -23,14 +24,39 @@ export class TwitterWatcher extends BaseWatcher {
             throw new Error("Environment variable 'CAGE_TWITTER_PASSWORD' should be provided.");
         }
 
-        await this.login(env.CAGE_TWITTER_USER_ID, env.CAGE_TWITTER_PASSWORD);
+        if (!this.signHelper.isLogged) {
+            await this.login(env.CAGE_TWITTER_USER_ID, env.CAGE_TWITTER_PASSWORD);
+        }
     }
-
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
     public async finalize(): Promise<void> {}
 
-    public async startWatch(): Promise<void> {
-        return Promise.resolve(undefined);
+    public async doWatch(): Promise<void> {}
+
+    public serialize(): Record<string, any> {
+        return {
+            helper: this.signHelper.serialize(),
+        };
+    }
+    public hydrate(data: Record<string, any>): void {
+        this.signHelper.hydrate(data.helper);
+    }
+
+    private async getAllFollowers() {
+        const result = await this.signHelper.getFollowers();
+        const followers: Follower[] = [...result[0]];
+        let next = result[1];
+        while (true) {
+            if (!next) {
+                break;
+            }
+
+            const [nextFollowers, nextFunction] = await next();
+            followers.push(...nextFollowers);
+
+            next = nextFunction;
+        }
+
+        return followers;
     }
 
     private async login(userId: string, password: string) {
