@@ -63,7 +63,7 @@ jobs:
               uses: codecov/codecov-action@v3
               with:
                   token: ${{ secrets.CODECOV_TOKEN }}
-                  name: solv
+                  name: cage
 
             - uses: sarisia/actions-status-discord@v1
               if: always()
