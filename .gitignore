@@ -6,4 +6,5 @@
 /.env
 /followers.json
 /dump
-/database.sqlite
+/data.sqlite
+/config.json

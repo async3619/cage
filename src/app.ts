@@ -3,8 +3,7 @@ import { DataSource } from "typeorm";
 import * as chalk from "chalk";
 import * as fs from "fs-extra";
 import * as path from "path";
-
-import { AVAILABLE_WATCHERS } from "@watchers";
+import * as prettyMilliseconds from "pretty-ms";
 
 import { Follower } from "@models/follower";
 import { FollowerLog, FollowerLogType } from "@models/follower-log";
@@ -12,6 +11,7 @@ import { FollowerLog, FollowerLogType } from "@models/follower-log";
 import { getFollowerDiff } from "@utils/getFollowerDiff";
 import { Env, Loggable, ProviderInitializeContext } from "@utils/type";
 import { sleep } from "@utils/sleep";
+import { Config } from "@utils/config";
 
 export class App extends Loggable {
     private readonly followerDataSource: DataSource;
@@ -20,10 +20,10 @@ export class App extends Loggable {
     };
 
     private cleaningUp = false;
+    private config: Config | null = null;
 
     public constructor() {
         super("App");
-
         this.followerDataSource = new DataSource({
             type: "sqlite",
             database: path.join(process.cwd(), "./data.sqlite"),
@@ -44,46 +44,57 @@ export class App extends Loggable {
         this.logger.clear();
         this.logger.info("Hello World from Cage! 🐦");
 
+        this.config = await Config.create();
+        if (!this.config) {
+            process.exit(-1);
+            return;
+        }
+
+        const targetWatchers = this.config.watchers;
         await this.logger.work({
             level: "info",
             message: "initialize database ... ",
             work: () => this.followerDataSource.initialize(),
         });
 
-        for (const provider of AVAILABLE_WATCHERS) {
+        for (const watcher of targetWatchers) {
             await this.logger.work({
                 level: "debug",
-                message: `loading lastly dumped data of \`${chalk.green(provider.getName())}\` watcher ... `,
+                message: `loading lastly dumped data of \`${chalk.green(watcher.getName())}\` watcher ... `,
                 work: async () => {
-                    const fileName = `${provider.getName().toLowerCase()}.json`;
+                    const fileName = `${watcher.getName().toLowerCase()}.json`;
                     const filePath = `./dump/${fileName}`;
 
                     if (!fs.existsSync(filePath)) {
                         throw new Error(`Dump file \`${fileName}\` does not exist.`);
                     }
 
-                    provider.hydrate(await fs.readJSON(filePath));
+                    watcher.hydrate(await fs.readJSON(filePath));
                 },
             });
         }
 
-        for (const provider of AVAILABLE_WATCHERS) {
+        for (const watcher of targetWatchers) {
             await this.logger.work({
                 level: "info",
-                message: `initialize \`${chalk.green(provider.getName())}\` watcher ... `,
-                work: () => provider.initialize(this.initializeContext),
+                message: `initialize \`${chalk.green(watcher.getName())}\` watcher ... `,
+                work: () => watcher.initialize(this.initializeContext),
             });
         }
 
-        const providerNames = AVAILABLE_WATCHERS.map(p => `\`${chalk.green(p.getName())}\``).join(", ");
-
-        this.logger.info(
-            `start to watch through ${providerNames} watchers${AVAILABLE_WATCHERS.length === 1 ? "" : "s"}.`,
-        );
+        const watcherNames = targetWatchers.map(p => `\`${chalk.green(p.getName())}\``).join(", ");
+        this.logger.info(`start to watch through ${watcherNames} watchers${targetWatchers.length === 1 ? "" : "s"}.`);
 
         while (true) {
             try {
                 await this.onCycle();
+
+                this.logger.info(
+                    `watching task done. now wait for ${prettyMilliseconds(this.config.watchInterval, {
+                        verbose: true,
+                    })}.`,
+                );
+                await sleep(this.config.watchInterval);
             } catch (e) {
                 if (!(e instanceof Error)) {
                     throw e;
@@ -91,34 +102,36 @@ export class App extends Loggable {
 
                 this.logger.error(`An error occurred while processing scheduled task: ${e.message}`);
             }
-
-            this.logger.info("watching task done. now wait for 1 minute.");
-            await sleep(60000);
         }
     }
 
     private async cleanUp() {
+        if (!this.config) {
+            throw new Error("Config is not loaded.");
+        }
+
         if (this.cleaningUp) {
             return;
         }
 
         this.cleaningUp = true;
 
-        for (const provider of AVAILABLE_WATCHERS) {
+        const targetWatchers = this.config.watchers;
+        for (const watcher of targetWatchers) {
             await this.logger.work({
                 level: "info",
-                message: `finalize \`${chalk.green(provider.getName())}\` watcher ... `,
-                work: () => provider.finalize(),
+                message: `finalize \`${chalk.green(watcher.getName())}\` watcher ... `,
+                work: () => watcher.finalize(),
             });
         }
 
-        for (const provider of AVAILABLE_WATCHERS) {
+        for (const watcher of targetWatchers) {
             await this.logger.work({
                 level: "debug",
-                message: `saving serialized data of \`${chalk.green(provider.getName())}\` watcher ... `,
+                message: `saving serialized data of \`${chalk.green(watcher.getName())}\` watcher ... `,
                 work: async () => {
-                    const data = provider.serialize();
-                    const filePath = `./dump/${provider.getName().toLowerCase()}.json`;
+                    const data = watcher.serialize();
+                    const filePath = `./dump/${watcher.getName().toLowerCase()}.json`;
 
                     await fs.ensureFile(filePath);
                     await fs.writeJson(filePath, data, { spaces: 4 });
@@ -130,14 +143,19 @@ export class App extends Loggable {
     }
 
     private onCycle = async () => {
-        for (const provider of AVAILABLE_WATCHERS) {
+        if (!this.config) {
+            throw new Error("Config is not loaded.");
+        }
+
+        const targetWatchers = this.config.watchers;
+        for (const watcher of targetWatchers) {
             const currentTime = new Date();
-            const providerName = provider.getName();
-            const nameToken = `\`${chalk.green(providerName)}\``;
+            const watcherName = watcher.getName();
+            const nameToken = `\`${chalk.green(watcherName)}\``;
             const newFollowers = await this.logger.work({
                 level: "info",
                 message: `determine followers data through ${nameToken} watcher ... `,
-                work: () => provider.doWatch(),
+                work: () => watcher.doWatch(),
             });
 
             if (!newFollowers) {
@@ -146,7 +164,7 @@ export class App extends Loggable {
             }
 
             const allFollowers = await Follower.find({
-                where: { from: providerName },
+                where: { from: watcherName },
                 relations: ["followerLogs"],
             });
             const oldFollowers = allFollowers.filter(f => f.isFollowing);
@@ -193,7 +211,7 @@ export class App extends Loggable {
                 );
             }
 
-            await Follower.update({ from: providerName }, { lastlyCheckedAt: currentTime });
+            await Follower.update({ from: watcherName }, { lastlyCheckedAt: currentTime });
         }
     };
 }
