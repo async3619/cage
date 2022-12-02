@@ -2,23 +2,31 @@ import * as dayjs from "dayjs";
 
 import { Work } from "@utils/type";
 
-interface MeasureTimeResult {
+interface SucceededMeasureTimeResult<T> {
     readonly elapsedTime: number;
-    readonly exception?: Error;
+    readonly data: T;
 }
 
-export async function measureTime(work: Work): Promise<MeasureTimeResult> {
+interface FailedMeasureTimeResult {
+    readonly elapsedTime: number;
+    readonly exception: Error;
+}
+
+export type MeasureTimeResult<T> = SucceededMeasureTimeResult<T> | FailedMeasureTimeResult;
+
+export async function measureTime<T>(work: Work<T>): Promise<MeasureTimeResult<T>> {
     const startedAt = dayjs();
     try {
-        await work();
+        const result = await work();
+
+        return {
+            elapsedTime: dayjs().diff(startedAt),
+            data: result,
+        };
     } catch (e) {
         return {
             elapsedTime: dayjs().diff(startedAt),
             exception: e as Error,
         };
     }
-
-    return {
-        elapsedTime: dayjs().diff(startedAt),
-    };
 }

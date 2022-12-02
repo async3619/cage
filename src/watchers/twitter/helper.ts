@@ -1,14 +1,14 @@
 import { TwitterAuth } from "@watchers/twitter/auth";
 import { TWITTER_AUTH_TOKEN } from "@watchers/twitter/constants";
-import { FollowerAPIResponse } from "@watchers/twitter/types";
+import { FollowerAPIResponse, FollowerUser } from "@watchers/twitter/types";
+import { findBottomCursorFromFollower, findUserDataFromFollower } from "@watchers/twitter/utils";
 
 import { generateRandomString } from "@utils/generateRandomString";
 import { Fetcher } from "@utils/fetcher";
-import { Follower, Hydratable, Serializable } from "@utils/type";
-import { findBottomCursorFromFollower, findUserDataFromFollower } from "@watchers/twitter/utils";
+import { Hydratable, Serializable } from "@utils/type";
 
 type FollowerCursor = string;
-type GetFollowersResult = [Follower[], (() => Promise<GetFollowersResult>) | null];
+type GetFollowersResult = [FollowerUser["legacy"][], (() => Promise<GetFollowersResult>) | null];
 
 export class TwitterHelper implements Serializable, Hydratable {
     private readonly fetcher: Fetcher = new Fetcher();
@@ -50,6 +50,7 @@ export class TwitterHelper implements Serializable, Hydratable {
 
             const [, userId] = twid.replace(/"/g, "").split("=");
             this.currentUserId = userId;
+            console.log(userId);
         }
 
         return this.currentUserId;
@@ -58,6 +59,7 @@ export class TwitterHelper implements Serializable, Hydratable {
     public doAuth() {
         return new TwitterAuth(this.fetcher, this.getHeaders.bind(this), token => (this.guest = token));
     }
+
     public async getFollowers(cursor: FollowerCursor | null = null): Promise<GetFollowersResult> {
         const variables: Record<string, unknown> = {
             userId: this.getUserId(),
@@ -114,13 +116,24 @@ export class TwitterHelper implements Serializable, Hydratable {
             throw new Error("Failed to find users");
         }
 
-        return [
-            users.map(u => ({
-                id: u.name,
-                screenName: u.screen_name,
-            })),
-            users.length >= 100 ? this.getFollowers.bind(this, bottomCursor) : null,
-        ];
+        return [users, users.length >= 100 ? this.getFollowers.bind(this, bottomCursor) : null];
+    }
+    public async getAllFollowers(): Promise<FollowerUser["legacy"][]> {
+        const result = await this.getFollowers();
+        const followers: FollowerUser["legacy"][] = [...result[0]];
+        let next = result[1];
+        while (true) {
+            if (!next) {
+                break;
+            }
+
+            const [nextFollowers, nextFunction] = await next();
+            followers.push(...nextFollowers);
+
+            next = nextFunction;
+        }
+
+        return followers;
     }
 
     public serialize(): Record<string, unknown> {

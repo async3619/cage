@@ -1,4 +1,4 @@
 import { BaseWatcher } from "@watchers/base";
 import { TwitterWatcher } from "@watchers/twitter";
 
-export const AVAILABLE_PROVIDERS: ReadonlyArray<BaseWatcher> = [new TwitterWatcher()];
+export const AVAILABLE_WATCHERS: ReadonlyArray<BaseWatcher> = [new TwitterWatcher()];

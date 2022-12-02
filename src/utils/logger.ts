@@ -8,61 +8,94 @@ type LoggerFn = (content: string, breakLine?: boolean) => void;
 type LogLevel = "silly" | "info" | "warn" | "error" | "debug";
 
 const LOG_LEVEL_COLOR_MAP: Record<LogLevel, Fn<[string], string>> = {
-    silly: chalk.cyan,
+    silly: chalk.blue,
     info: chalk.cyan,
     warn: chalk.yellow,
     error: chalk.red,
     debug: chalk.magenta,
 };
 
-function createLoggerFn(level: LogLevel): LoggerFn {
-    const levelString = LOG_LEVEL_COLOR_MAP[level](level.toUpperCase());
+interface WorkOptions<T> {
+    level: LogLevel;
+    message: string;
+    failedLevel?: LogLevel;
+    done?: string;
+    work: () => T | Promise<T>;
+}
 
-    return (content, breakLine = true) => {
-        const tokens = chalk.green(
-            [chalk.cyan(dayjs().format("HH:mm:ss.SSS")), levelString].map(t => `[${t}]`).join(""),
-        );
+export class Logger implements Record<LogLevel, LoggerFn> {
+    private static readonly buffer: string[] = [];
+    private static isLocked = false;
 
-        const formattedString = `${tokens} ${content}`;
-        if (breakLine) {
-            console.log(formattedString);
-        } else {
-            process.stdout.write(formattedString);
+    private static setLock(lock: boolean) {
+        if (!lock && Logger.isLocked) {
+            Logger.buffer.forEach(message => process.stdout.write(message));
+            Logger.buffer.length = 0;
         }
-    };
-}
 
-interface LoggerType extends Record<LogLevel, LoggerFn> {
-    clear(): void;
-    work(level: LogLevel, message: string, work: () => void | Promise<void>, done?: string): Promise<void>;
-}
+        Logger.isLocked = lock;
+    }
 
-export const Logger: LoggerType = (() => {
-    const loggers: Record<LogLevel, LoggerFn> = {
-        info: createLoggerFn("info"),
-        error: createLoggerFn("error"),
-        warn: createLoggerFn("warn"),
-        silly: createLoggerFn("silly"),
-        debug: createLoggerFn("debug"),
-    };
+    public readonly info: LoggerFn;
+    public readonly warn: LoggerFn;
+    public readonly error: LoggerFn;
+    public readonly debug: LoggerFn;
+    public readonly silly: LoggerFn;
 
-    return {
-        ...loggers,
-        work: async (level: LogLevel, message: string, work: () => void | Promise<void>, done = "done.") => {
-            loggers[level](message, false);
+    public constructor(private readonly name: string) {
+        this.info = this.createLoggerFunction("info");
+        this.warn = this.createLoggerFunction("warn");
+        this.error = this.createLoggerFunction("error");
+        this.debug = this.createLoggerFunction("debug");
+        this.silly = this.createLoggerFunction("silly");
+    }
 
-            const { elapsedTime, exception } = await measureTime(() => work());
+    private createLoggerFunction = (level: LogLevel): LoggerFn => {
+        const levelString = LOG_LEVEL_COLOR_MAP[level](level.toUpperCase());
 
-            if (exception) {
-                process.stdout.write(`failed. (${elapsedTime}ms)`);
-                loggers.error(`Last task failed with error: ${exception.message}`);
-                return;
+        return (content, breakLine = true) => {
+            const tokens = chalk.green(
+                [chalk.cyan(dayjs().format("HH:mm:ss.SSS")), chalk.yellow(this.name), levelString]
+                    .map(t => `[${t}]`)
+                    .join(""),
+            );
+
+            const formattedString = `${tokens} ${content}${breakLine ? "\n" : ""}`;
+            if (Logger.isLocked) {
+                Logger.buffer.push(formattedString);
+            } else {
+                process.stdout.write(formattedString);
             }
-
-            process.stdout.write(`${done} ${chalk.gray(`(${elapsedTime}ms)`)}\n`);
-        },
-        clear: () => {
-            console.clear();
-        },
+        };
     };
-})();
+
+    public clear = () => {
+        console.clear();
+    };
+
+    public work = async <T>({
+        work,
+        failedLevel = "error",
+        level,
+        message,
+        done = "done.",
+    }: WorkOptions<T>): Promise<T | null> => {
+        this[level](message, false);
+
+        Logger.setLock(true);
+        const measuredData = await measureTime(work);
+        const time = chalk.gray(`(${measuredData.elapsedTime}ms)`);
+
+        if ("exception" in measuredData) {
+            process.stdout.write(`failed. ${time}\n`);
+            this[failedLevel](`Last task failed with error: ${measuredData.exception.message}`);
+            Logger.setLock(false);
+            return null;
+        }
+
+        process.stdout.write(`${done} ${time}\n`);
+        Logger.setLock(false);
+
+        return measuredData.data;
+    };
+}

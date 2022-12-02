@@ -2,19 +2,17 @@
 import { BaseWatcher } from "@watchers/base";
 import { TwitterHelper } from "@watchers/twitter/helper";
 
-import { Follower, ProviderInitializeContext } from "@utils/type";
+import { Follower } from "@models/follower";
+
+import { ProviderInitializeContext } from "@utils/type";
 
 export type TWITTER_PROVIDER_ENV_KEYS = "TWITTER_USER_ID" | "TWITTER_PASSWORD";
 
 export class TwitterWatcher extends BaseWatcher {
-    private readonly signHelper: TwitterHelper = new TwitterHelper();
+    private readonly helper: TwitterHelper = new TwitterHelper();
 
     public constructor() {
-        super();
-    }
-
-    public getName(): string {
-        return "Twitter";
+        super("Twitter");
     }
 
     public async initialize({ env }: ProviderInitializeContext): Promise<void> {
@@ -24,43 +22,40 @@ export class TwitterWatcher extends BaseWatcher {
             throw new Error("Environment variable 'CAGE_TWITTER_PASSWORD' should be provided.");
         }
 
-        if (!this.signHelper.isLogged) {
+        if (!this.helper.isLogged) {
             await this.login(env.CAGE_TWITTER_USER_ID, env.CAGE_TWITTER_PASSWORD);
         }
     }
     public async finalize(): Promise<void> {}
 
-    public async doWatch(): Promise<void> {}
+    public async doWatch() {
+        const checkedAt = new Date();
+        const allFollowers = await this.helper.getAllFollowers();
+        this.logger.silly(`Total followers: ${allFollowers.length}`);
+
+        return allFollowers.map(user => {
+            const follower = Follower.create();
+            follower.from = this.getName();
+            follower.displayName = user.name;
+            follower.isFollowing = true;
+            follower.lastlyCheckedAt = checkedAt;
+            follower.id = `${follower.from}:${user.screen_name}`;
+
+            return follower;
+        });
+    }
 
     public serialize(): Record<string, any> {
         return {
-            helper: this.signHelper.serialize(),
+            helper: this.helper.serialize(),
         };
     }
     public hydrate(data: Record<string, any>): void {
-        this.signHelper.hydrate(data.helper);
-    }
-
-    private async getAllFollowers() {
-        const result = await this.signHelper.getFollowers();
-        const followers: Follower[] = [...result[0]];
-        let next = result[1];
-        while (true) {
-            if (!next) {
-                break;
-            }
-
-            const [nextFollowers, nextFunction] = await next();
-            followers.push(...nextFollowers);
-
-            next = nextFunction;
-        }
-
-        return followers;
+        this.helper.hydrate(data.helper);
     }
 
     private async login(userId: string, password: string) {
-        await this.signHelper
+        await this.helper
             .doAuth()
             .doInstrumentation()
             .setUserId(userId)
