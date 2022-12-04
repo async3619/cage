@@ -1,20 +1,21 @@
-import { JestConfigWithTsJest } from "ts-jest";
+import type { JestConfigWithTsJest } from "ts-jest";
+import { pathsToModuleNameMapper } from "ts-jest";
+import { compilerOptions } from "./tsconfig.json";
 
-const config: JestConfigWithTsJest = {
-    preset: "ts-jest",
+const jestConfig: JestConfigWithTsJest = {
+    moduleFileExtensions: ["js", "json", "ts"],
+    rootDir: "./src",
+    testRegex: ".*\\.spec\\.ts$",
+    transform: {
+        "^.+\\.(t|j)s$": "ts-jest",
+    },
+    collectCoverageFrom: ["**/*.ts", "!coverage/**"],
+    coverageDirectory: "../coverage",
     testEnvironment: "node",
-    collectCoverage: true,
-    coverageReporters: ["html", "json", "text"],
-    collectCoverageFrom: [
-        "!**/*.js",
-        "src/**/*.ts",
-        "!src/index.ts",
-        "!**/node_modules/**",
-        "!**/dist/**",
-        "!**/bin/**",
-    ],
-    modulePathIgnorePatterns: ["<rootDir>/dist/"],
-    testPathIgnorePatterns: ["<rootDir>/dist/"],
+    roots: ["<rootDir>"],
+    modulePaths: [compilerOptions.baseUrl], // <-- This will be set to 'baseUrl' value
+    moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, { prefix: "<rootDir>/../" }),
+    watchAll: true,
 };
 
-export = config;
+export = jestConfig;

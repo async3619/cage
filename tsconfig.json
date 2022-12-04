@@ -1,7 +1,5 @@
 {
     "compilerOptions": {
-        "strict": true,
-        "module": "commonjs",
         "declaration": false,
         "moduleResolution": "Node",
         "removeComments": true,
@@ -13,7 +11,7 @@
         "inlineSourceMap": true,
         "resolveJsonModule": true,
         "outDir": "./dist",
-        "baseUrl": ".",
+        "esModuleInterop": true,
         "incremental": true,
         "skipLibCheck": true,
         "strictNullChecks": true,
@@ -21,6 +19,12 @@
         "strictBindCallApply": true,
         "forceConsistentCasingInFileNames": false,
         "noFallthroughCasesInSwitch": false,
+        "module": "commonjs",
+        "strict": true,
+        "strictFunctionTypes": true,
+        "strictPropertyInitialization": true,
+        "baseUrl": "./",
+        "rootDir": ".",
         "paths": {
             "@root/*": ["./src/*"],
             "@utils/*": ["./src/utils/*"],
@@ -29,6 +33,5 @@
             "@followers/*": ["./src/followers/*"],
             "@models/*": ["./src/models/*"]
         }
-    },
-    "exclude": ["node_modules", "**/*spec.ts", "./*.ts"]
+    }
 }

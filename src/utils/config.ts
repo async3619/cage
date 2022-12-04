@@ -1,6 +1,6 @@
 import * as path from "path";
 import * as fs from "fs-extra";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import Ajv, { JSONSchemaType } from "ajv";
 import betterAjvErrors from "better-ajv-errors";
 

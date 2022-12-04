@@ -13,7 +13,7 @@
         "lint": "eslint \"src/**/*.ts\"",
         "prepublishOnly": "npm run build",
         "test": "jest",
-        "test:watch": "jest --watch"
+        "coverage": "jest --coverage"
     },
     "bin": {
         "cage": "./bin/cage.cjs"
@@ -72,6 +72,7 @@
         "reflect-metadata": "^0.1.13",
         "set-cookie-parser": "^2.5.1",
         "sqlite3": "^5.1.2",
+        "strip-ansi": "^6.0.1",
         "typeorm": "^0.3.10"
     }
 }

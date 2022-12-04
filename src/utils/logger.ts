@@ -1,11 +1,11 @@
-import * as dayjs from "dayjs";
-import * as chalk from "chalk";
+import dayjs from "dayjs";
+import chalk from "chalk";
 
 import { measureTime } from "@utils/measureTime";
 import { Fn } from "@utils/types";
 
 type LoggerFn = (content: string, breakLine?: boolean) => void;
-type LogLevel = "silly" | "info" | "warn" | "error" | "debug";
+export type LogLevel = "silly" | "info" | "warn" | "error" | "debug";
 
 const LOG_LEVEL_COLOR_MAP: Record<LogLevel, Fn<string, string>> = {
     silly: chalk.blue,

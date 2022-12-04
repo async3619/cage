@@ -1,9 +1,9 @@
 import * as _ from "lodash";
 import { DataSource } from "typeorm";
-import * as chalk from "chalk";
+import chalk from "chalk";
 import * as fs from "fs-extra";
 import * as path from "path";
-import * as prettyMilliseconds from "pretty-ms";
+import prettyMilliseconds from "pretty-ms";
 
 import { Follower } from "@models/follower";
 import { FollowerLog, FollowerLogType } from "@models/follower-log";
@@ -37,7 +37,6 @@ export class App extends Loggable {
         process.on("SIGINT", this.cleanUp.bind(this));
         process.on("SIGUSR1", this.cleanUp.bind(this));
         process.on("SIGUSR2", this.cleanUp.bind(this));
-        process.on("uncaughtException", this.cleanUp.bind(this));
     }
 
     public async run() {
@@ -107,7 +106,7 @@ export class App extends Loggable {
 
     private async cleanUp() {
         if (!this.config) {
-            throw new Error("Config is not loaded.");
+            return;
         }
 
         if (this.cleaningUp) {
