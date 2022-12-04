@@ -5,7 +5,7 @@ import { findBottomCursorFromFollower, findUserDataFromFollower } from "@watcher
 
 import { generateRandomString } from "@utils/generateRandomString";
 import { Fetcher } from "@utils/fetcher";
-import { Hydratable, Serializable } from "@utils/type";
+import { Hydratable, Serializable } from "@utils/types";
 
 type FollowerCursor = string;
 type GetFollowersResult = [FollowerUser["legacy"][], (() => Promise<GetFollowersResult>) | null];

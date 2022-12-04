@@ -4,7 +4,7 @@ import { TwitterHelper } from "@watchers/twitter/helper";
 
 import { Follower } from "@models/follower";
 
-import { ProviderInitializeContext } from "@utils/type";
+import { ProviderInitializeContext } from "@utils/types";
 
 export type TWITTER_PROVIDER_ENV_KEYS = "TWITTER_USER_ID" | "TWITTER_PASSWORD";
 

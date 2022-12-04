@@ -9,7 +9,7 @@ import { Follower } from "@models/follower";
 import { FollowerLog, FollowerLogType } from "@models/follower-log";
 
 import { getFollowerDiff } from "@utils/getFollowerDiff";
-import { Env, Loggable, ProviderInitializeContext } from "@utils/type";
+import { Env, Loggable, ProviderInitializeContext } from "@utils/types";
 import { sleep } from "@utils/sleep";
 import { Config } from "@utils/config";
 

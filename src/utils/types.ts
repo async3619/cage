@@ -1,8 +1,13 @@
 import type { TWITTER_PROVIDER_ENV_KEYS } from "@watchers/twitter";
 import { Logger } from "@utils/logger";
 
-export type Fn<TArg extends unknown[] = [], TReturn = unknown> = (...arg: TArg) => TReturn;
-export type Work<T> = Fn<[], Promise<T> | T>;
+export type Fn<TArgs = void, TReturn = void> = TArgs extends unknown[]
+    ? (...arg: TArgs) => TReturn
+    : TArgs extends void
+    ? () => TReturn
+    : (...arg: [TArgs]) => TReturn;
+export type AsyncFn<TArgs, TReturn = unknown> = Fn<TArgs, Promise<TReturn>>;
+export type Work<T> = Fn<void, Promise<T> | T>;
 export type Nullable<T> = T | null | undefined;
 
 export type KnownEnvKeys = `CAGE_${TWITTER_PROVIDER_ENV_KEYS}`;

@@ -1,7 +1,7 @@
 import fetch, { Headers, RequestInit, Response } from "node-fetch";
 
 import { parseCookie } from "@utils/parseCookie";
-import { Hydratable, Serializable } from "@utils/type";
+import { Hydratable, Serializable } from "@utils/types";
 
 export class Fetcher implements Serializable, Hydratable {
     private readonly cookies: Record<string, string> = {};

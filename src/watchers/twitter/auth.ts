@@ -1,14 +1,14 @@
 import { Fetcher } from "@utils/fetcher";
-import { Fn } from "@utils/type";
+import { AsyncFn, Fn } from "@utils/types";
 
 export class TwitterAuth {
-    private readonly tasks: Array<Fn<[], Promise<void>>> = [];
+    private readonly tasks: Array<AsyncFn<void, void>> = [];
     private flowToken = "";
 
     public constructor(
         private readonly fetcher: Fetcher,
-        private readonly getHeaders: Fn<[], Record<string, string>>,
-        private readonly guestTokenHandler: Fn<[string], void>,
+        private readonly getHeaders: Fn<void, Record<string, string>>,
+        private readonly guestTokenHandler: Fn<string>,
     ) {}
 
     public doInstrumentation() {

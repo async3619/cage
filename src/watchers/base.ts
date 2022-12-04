@@ -1,4 +1,4 @@
-import { Hydratable, Loggable, ProviderInitializeContext, Serializable } from "@utils/type";
+import { Hydratable, Loggable, ProviderInitializeContext, Serializable } from "@utils/types";
 import { Follower } from "@root/models/follower";
 
 export abstract class BaseWatcher extends Loggable implements Serializable, Hydratable {

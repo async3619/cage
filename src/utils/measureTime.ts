@@ -1,6 +1,6 @@
 import * as dayjs from "dayjs";
 
-import { Work } from "@utils/type";
+import { Work } from "@utils/types";
 
 interface SucceededMeasureTimeResult<T> {
     readonly elapsedTime: number;
