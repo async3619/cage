@@ -8,10 +8,10 @@ import prettyMilliseconds from "pretty-ms";
 import { Follower } from "@models/follower";
 import { FollowerLog, FollowerLogType } from "@models/follower-log";
 
+import { Config } from "@utils/config";
+import { throttle } from "@utils/throttle";
 import { getFollowerDiff } from "@utils/getFollowerDiff";
 import { Env, Loggable, ProviderInitializeContext } from "@utils/types";
-import { sleep } from "@utils/sleep";
-import { Config } from "@utils/config";
 
 export class App extends Loggable {
     private readonly followerDataSource: DataSource;
@@ -86,14 +86,8 @@ export class App extends Loggable {
 
         while (true) {
             try {
-                await this.onCycle();
-
-                this.logger.info(
-                    `watching task done. now wait for ${prettyMilliseconds(this.config.watchInterval, {
-                        verbose: true,
-                    })}.`,
-                );
-                await sleep(this.config.watchInterval);
+                const [, elapsedTime] = await throttle(this.onCycle.bind(this), 1000, true);
+                this.logger.debug(`last task finished in ${chalk.green(prettyMilliseconds(elapsedTime))}.`);
             } catch (e) {
                 if (!(e instanceof Error)) {
                     throw e;
@@ -105,11 +99,7 @@ export class App extends Loggable {
     }
 
     private async cleanUp() {
-        if (!this.config) {
-            return;
-        }
-
-        if (this.cleaningUp) {
+        if (!this.config || this.cleaningUp) {
             return;
         }
 
