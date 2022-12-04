@@ -15,7 +15,6 @@ const jestConfig: JestConfigWithTsJest = {
     roots: ["<rootDir>"],
     modulePaths: [compilerOptions.baseUrl], // <-- This will be set to 'baseUrl' value
     moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, { prefix: "<rootDir>/../" }),
-    watchAll: true,
 };
 
 export = jestConfig;
