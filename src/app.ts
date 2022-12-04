@@ -1,23 +1,31 @@
-import * as _ from "lodash";
-import { DataSource } from "typeorm";
-import chalk from "chalk";
 import * as fs from "fs-extra";
 import * as path from "path";
+import { DataSource } from "typeorm";
+import chalk from "chalk";
 import prettyMilliseconds from "pretty-ms";
+import pluralize from "pluralize";
 
-import { Follower } from "@models/follower";
-import { FollowerLog, FollowerLogType } from "@models/follower-log";
+import { UserRepository } from "@repositories/user";
+import { UserLogRepository } from "@repositories/user-log";
+
+import { User, UserData } from "@repositories/models/user";
+import { UserLog, UserLogType } from "@root/repositories/models/user-log";
+
+import { AVAILABLE_WATCHERS } from "@watchers";
 
 import { Config } from "@utils/config";
 import { throttle } from "@utils/throttle";
-import { getFollowerDiff } from "@utils/getFollowerDiff";
 import { Env, Loggable, ProviderInitializeContext } from "@utils/types";
+import { mapBy } from "@utils/mapBy";
 
 export class App extends Loggable {
     private readonly followerDataSource: DataSource;
     private readonly initializeContext: Readonly<ProviderInitializeContext> = {
         env: process.env as Env,
     };
+
+    private readonly userRepository: UserRepository;
+    private readonly userLogRepository: UserLogRepository;
 
     private cleaningUp = false;
     private config: Config | null = null;
@@ -27,10 +35,13 @@ export class App extends Loggable {
         this.followerDataSource = new DataSource({
             type: "sqlite",
             database: path.join(process.cwd(), "./data.sqlite"),
-            entities: [Follower, FollowerLog],
+            entities: [User, UserLog],
             dropSchema: true,
             synchronize: true,
         });
+
+        this.userRepository = new UserRepository(this.followerDataSource.getRepository(User));
+        this.userLogRepository = new UserLogRepository(this.followerDataSource.getRepository(UserLog));
 
         process.on("exit", this.cleanUp.bind(this));
         process.on("SIGTERM", this.cleanUp.bind(this));
@@ -86,8 +97,10 @@ export class App extends Loggable {
 
         while (true) {
             try {
-                const [, elapsedTime] = await throttle(this.onCycle.bind(this), 1000, true);
-                this.logger.debug(`last task finished in ${chalk.green(prettyMilliseconds(elapsedTime))}.`);
+                const [, elapsedTime] = await throttle(this.onCycle.bind(this), this.config.watchInterval, true);
+                this.logger.debug(
+                    `last task finished in ${chalk.green(prettyMilliseconds(elapsedTime, { verbose: true }))}.`,
+                );
             } catch (e) {
                 if (!(e instanceof Error)) {
                     throw e;
@@ -136,71 +149,33 @@ export class App extends Loggable {
             throw new Error("Config is not loaded.");
         }
 
-        const targetWatchers = this.config.watchers;
-        for (const watcher of targetWatchers) {
-            const currentTime = new Date();
-            const watcherName = watcher.getName();
-            const nameToken = `\`${chalk.green(watcherName)}\``;
-            const newFollowers = await this.logger.work({
-                level: "info",
-                message: `determine followers data through ${nameToken} watcher ... `,
-                work: () => watcher.doWatch(),
-            });
+        const startedDate = new Date();
+        const allUserData: UserData[] = [];
+        for (const watcher of AVAILABLE_WATCHERS) {
+            const userData = await watcher.doWatch();
 
-            if (!newFollowers) {
-                this.logger.error(`no followers data was returned from ${nameToken} watcher.`);
-                continue;
-            }
-
-            const allFollowers = await Follower.find({
-                where: { from: watcherName },
-                relations: ["followerLogs"],
-            });
-            const oldFollowers = allFollowers.filter(f => f.isFollowing);
-            const followerLogsMap = _.chain(allFollowers)
-                .keyBy("id")
-                .mapValues(f => f.followerLogs)
-                .value();
-
-            const { removed, added } = getFollowerDiff(oldFollowers, newFollowers);
-
-            if (added.length > 0) {
-                for (const follower of added) {
-                    const newLog = new FollowerLog();
-                    newLog.type = FollowerLogType.Follow;
-                    newLog.createdAt = currentTime;
-
-                    follower.isFollowing = true;
-                    follower.followerLogs = [...(followerLogsMap[follower.id] || []), newLog];
-                }
-
-                await Follower.save(added);
-            }
-
-            if (removed.length > 0) {
-                for (const follower of removed) {
-                    const newLog = new FollowerLog();
-                    newLog.type = FollowerLogType.Unfollow;
-                    newLog.createdAt = currentTime;
-
-                    follower.isFollowing = false;
-                    follower.followerLogs = [...followerLogsMap[follower.id], newLog];
-                }
-
-                await Follower.save(removed);
-            }
-
-            if (added.length === 0 && removed.length === 0) {
-                this.logger.info(`no changes found from ${nameToken} watcher.`);
-            } else {
-                this.logger.info(
-                    `found ${chalk.green(added.length)} new follower(s) and ${chalk.red(
-                        removed.length,
-                    )} removed follower(s).`,
-                );
-            }
-
-            await Follower.update({ from: watcherName }, { lastlyCheckedAt: currentTime });
+            allUserData.push(...userData);
         }
+
+        this.logger.info(`All ${allUserData.length} ${pluralize("follower", allUserData.length)} collected.`);
+
+        const followingMap = await this.userLogRepository.getFollowStatusMap();
+        const oldUsers = await this.userRepository.find();
+        const newUsers = await this.userRepository.createFromData(allUserData, startedDate);
+        const newUserMap = mapBy(newUsers, "id");
+
+        // find users who are not followed yet.
+        const newFollowers = newUsers.filter(p => !followingMap[p.id]);
+        const unfollowers = oldUsers.filter(p => !newUserMap[p.id] && followingMap[p.id]);
+
+        const newLogs = await this.userLogRepository.batchWriteLogs([
+            [newFollowers, UserLogType.Follow],
+            [unfollowers, UserLogType.Unfollow],
+        ]);
+
+        this.logger.info(`all ${newLogs.length} ${pluralize("log", newLogs.length)} saved.`);
+
+        this.logger.info(`tracked ${newFollowers.length} new ${pluralize("follower", newFollowers.length)}.`);
+        this.logger.info(`tracked ${unfollowers.length} un${pluralize("follower", unfollowers.length)}.`);
     };
 }

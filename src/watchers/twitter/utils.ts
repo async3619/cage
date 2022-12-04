@@ -51,5 +51,5 @@ export function findUserDataFromFollower(response: FollowerAPIResponse) {
         .filter((content): content is TimelineItemContent => {
             return content.entryType === "TimelineTimelineItem";
         })
-        .map(content => content.itemContent.user_results.result.legacy);
+        .map(content => content.itemContent.user_results.result);
 }

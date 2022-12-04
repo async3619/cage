@@ -2,7 +2,7 @@
 import { BaseWatcher } from "@watchers/base";
 import { TwitterHelper } from "@watchers/twitter/helper";
 
-import { Follower } from "@models/follower";
+import { UserData } from "@root/repositories/models/user";
 
 import { ProviderInitializeContext } from "@utils/types";
 
@@ -29,20 +29,16 @@ export class TwitterWatcher extends BaseWatcher {
     public async finalize(): Promise<void> {}
 
     public async doWatch() {
-        const checkedAt = new Date();
         const allFollowers = await this.helper.getAllFollowers();
-        this.logger.silly(`Total followers: ${allFollowers.length}`);
 
-        return allFollowers.map(user => {
-            const follower = Follower.create();
-            follower.from = this.getName();
-            follower.displayName = user.name;
-            follower.isFollowing = true;
-            follower.lastlyCheckedAt = checkedAt;
-            follower.id = `${follower.from}:${user.screen_name}`;
+        this.logger.silly(`Successfully crawled ${allFollowers.length} followers`);
 
-            return follower;
-        });
+        return allFollowers.map<UserData>(user => ({
+            uniqueId: user.rest_id,
+            userId: user.legacy.screen_name,
+            displayName: user.legacy.name,
+            from: this.getName().toLowerCase(),
+        }));
     }
 
     public serialize(): Record<string, any> {

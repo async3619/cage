@@ -1,3 +1,5 @@
+import * as fs from "fs-extra";
+
 import { TwitterAuth } from "@watchers/twitter/auth";
 import { TWITTER_AUTH_TOKEN } from "@watchers/twitter/constants";
 import { FollowerAPIResponse, FollowerUser } from "@watchers/twitter/types";
@@ -8,7 +10,7 @@ import { Fetcher } from "@utils/fetcher";
 import { Hydratable, Serializable } from "@utils/types";
 
 type FollowerCursor = string;
-type GetFollowersResult = [FollowerUser["legacy"][], (() => Promise<GetFollowersResult>) | null];
+type GetFollowersResult = [FollowerUser[], (() => Promise<GetFollowersResult>) | null];
 
 export class TwitterHelper implements Serializable, Hydratable {
     private readonly fetcher: Fetcher = new Fetcher();
@@ -106,6 +108,12 @@ export class TwitterHelper implements Serializable, Hydratable {
             },
         );
 
+        if (process.env.NODE_ENV === "development") {
+            await fs.writeJson("followers.json", data, {
+                spaces: 4,
+            });
+        }
+
         const bottomCursor = findBottomCursorFromFollower(data);
         if (!bottomCursor) {
             throw new Error("Failed to find bottom cursor");
@@ -118,9 +126,9 @@ export class TwitterHelper implements Serializable, Hydratable {
 
         return [users, users.length >= 100 ? this.getFollowers.bind(this, bottomCursor) : null];
     }
-    public async getAllFollowers(): Promise<FollowerUser["legacy"][]> {
+    public async getAllFollowers(): Promise<FollowerUser[]> {
         const result = await this.getFollowers();
-        const followers: FollowerUser["legacy"][] = [...result[0]];
+        const followers: FollowerUser[] = [...result[0]];
         let next = result[1];
         while (true) {
             if (!next) {

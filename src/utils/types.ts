@@ -6,7 +6,7 @@ export type Fn<TArgs = void, TReturn = void> = TArgs extends unknown[]
     : TArgs extends void
     ? () => TReturn
     : (...arg: [TArgs]) => TReturn;
-export type AsyncFn<TArgs, TReturn = unknown> = Fn<TArgs, Promise<TReturn>>;
+export type AsyncFn<TArgs = void, TReturn = void> = Fn<TArgs, Promise<TReturn>>;
 export type Work<T> = Fn<void, Promise<T> | T>;
 export type Nullable<T> = T | null | undefined;
 

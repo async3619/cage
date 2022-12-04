@@ -1,8 +1,8 @@
 import * as _ from "lodash";
 
-import { Follower } from "@models/follower";
+import { User } from "@root/repositories/models/user";
 
-export function getFollowerDiff(oldFollowers: Follower[], newFollowers: Follower[]) {
+export function getFollowerDiff(oldFollowers: User[], newFollowers: User[]) {
     const oldFollowerMap = _.chain(oldFollowers).keyBy("id").value();
     const newFollowerMap = _.chain(newFollowers).keyBy("id").value();
 

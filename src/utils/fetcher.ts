@@ -1,10 +1,11 @@
-import fetch, { Headers, RequestInit, Response } from "node-fetch";
+import nodeFetch, { Headers, RequestInit, Response } from "node-fetch";
 
 import { parseCookie } from "@utils/parseCookie";
 import { Hydratable, Serializable } from "@utils/types";
 
 export class Fetcher implements Serializable, Hydratable {
     private readonly cookies: Record<string, string> = {};
+    private readonly fetchImpl = nodeFetch;
 
     private getCookieString(): string {
         return Object.entries(this.cookies)
@@ -35,7 +36,7 @@ export class Fetcher implements Serializable, Hydratable {
         const headers = new Headers(options.headers);
         headers.set("cookie", this.getCookieString());
 
-        const response = await fetch(url, {
+        const response = await this.fetchImpl(url, {
             ...options,
             headers,
         });

@@ -9,20 +9,20 @@ import {
     UpdateDateColumn,
 } from "typeorm";
 
-import { Follower } from "@models/follower";
+import { User } from "@repositories/models/user";
 
-export enum FollowerLogType {
+export enum UserLogType {
     Follow = "follow",
     Unfollow = "unfollow",
 }
 
 @Entity({ name: "follower-logs" })
-export class FollowerLog extends BaseEntity {
+export class UserLog extends BaseEntity {
     @PrimaryGeneratedColumn()
     public id!: number;
 
     @Column({ type: "varchar", length: 255 })
-    public type!: FollowerLogType;
+    public type!: UserLogType;
 
     @CreateDateColumn()
     public createdAt!: Date;
@@ -30,9 +30,9 @@ export class FollowerLog extends BaseEntity {
     @UpdateDateColumn()
     public updatedAt!: Date;
 
-    @ManyToOne(() => Follower, follower => follower.followerLogs)
-    public follower!: Follower;
+    @ManyToOne(() => User, follower => follower.userLogs)
+    public user!: User;
 
-    @RelationId((followerLog: FollowerLog) => followerLog.follower)
-    public followerId!: string;
+    @RelationId((userLog: UserLog) => userLog.user)
+    public userLogId!: string;
 }

@@ -31,7 +31,7 @@
             "@watchers/*": ["./src/watchers/*"],
             "@watchers": ["./src/watchers"],
             "@followers/*": ["./src/followers/*"],
-            "@models/*": ["./src/models/*"]
+            "@repositories/*": ["./src/repositories/*"]
         }
     }
 }

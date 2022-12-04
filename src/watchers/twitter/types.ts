@@ -25,6 +25,7 @@ export interface InstructionEntry {
     content: TimelineItemContent | TimelineCursorContent;
 }
 export interface FollowerUser {
+    rest_id: string;
     legacy: {
         blocked_by: boolean;
         blocking: boolean;

@@ -1,5 +1,5 @@
 import { Hydratable, Loggable, ProviderInitializeContext, Serializable } from "@utils/types";
-import { Follower } from "@root/models/follower";
+import { UserData } from "@root/repositories/models/user";
 
 export abstract class BaseWatcher extends Loggable implements Serializable, Hydratable {
     protected constructor(name: string) {
@@ -13,7 +13,7 @@ export abstract class BaseWatcher extends Loggable implements Serializable, Hydr
     public abstract initialize(context: ProviderInitializeContext): Promise<void>;
     public abstract finalize(): Promise<void>;
 
-    public abstract doWatch(): Promise<Follower[]>;
+    public abstract doWatch(): Promise<UserData[]>;
 
     public abstract serialize(): Record<string, any>;
     public abstract hydrate(data: Record<string, any>): void;
