@@ -57,7 +57,7 @@ jobs:
               env:
                   FORCE_COLOR: 3
               run: |
-                  yarn coverage
+                  yarn coverage --ci --verbose --testTimeout=10000
 
             - name: Codecov
               uses: codecov/codecov-action@v3
