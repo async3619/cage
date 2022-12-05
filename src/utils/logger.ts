@@ -23,17 +23,81 @@ interface WorkOptions<T> {
     work: () => T | Promise<T>;
 }
 
+const CHALK_FORMAT_NAMES: Array<keyof typeof chalk> = [
+    "black",
+    "red",
+    "green",
+    "yellow",
+    "blue",
+    "magenta",
+    "cyan",
+    "white",
+    "gray",
+    "grey",
+    "blackBright",
+    "redBright",
+    "greenBright",
+    "yellowBright",
+    "blueBright",
+    "magentaBright",
+    "cyanBright",
+    "whiteBright",
+    "bgBlack",
+    "bgRed",
+    "bgGreen",
+    "bgYellow",
+    "bgBlue",
+    "bgMagenta",
+    "bgCyan",
+    "bgWhite",
+    "bgGray",
+    "bgGrey",
+    "bgBlackBright",
+    "bgRedBright",
+    "bgGreenBright",
+    "bgYellowBright",
+    "bgBlueBright",
+    "bgMagentaBright",
+    "bgCyanBright",
+    "bgWhiteBright",
+    "italic",
+    "bold",
+    "underline",
+    "strikethrough",
+];
+
 export class Logger implements Record<LogLevel, LoggerFn> {
     public static format(content: string, ...args: any[]): string {
-        const formattedArgs = args?.map(arg => {
-            if (typeof arg === "object") {
-                return JSON.stringify(arg, null, 4);
-            }
+        if (args.length === 0) {
+            return content;
+        }
 
-            return arg;
-        });
+        const formattedArgs = args
+            .map(arg => {
+                if (typeof arg === "object") {
+                    return JSON.stringify(arg);
+                }
 
-        return formattedArgs ? content.replace(/{}/g, () => formattedArgs.shift()) : content;
+                return `${arg}`;
+            })
+            .map(arg => {
+                const result = /(\{(.*?)\})/.exec(content);
+                if (result && result[2]) {
+                    const tokens = result[2].split(":");
+                    let content = arg;
+                    for (const token of tokens) {
+                        if (CHALK_FORMAT_NAMES.includes(token as any)) {
+                            content = chalk[token](content);
+                        }
+                    }
+
+                    return content;
+                } else {
+                    return arg;
+                }
+            });
+
+        return formattedArgs.reduce((content, arg) => content.replace(/\{.*?\}/, arg), content);
     }
 
     private static readonly buffer: string[] = [];
@@ -75,13 +139,7 @@ export class Logger implements Record<LogLevel, LoggerFn> {
             // replace all {} with the corresponding argument
             let message = content;
             if (args) {
-                message = content.replace(/{}/g, () => {
-                    if (args.length === 0) {
-                        return "{}";
-                    }
-
-                    return args.shift();
-                });
+                message = Logger.format(content, ...args);
             }
 
             const formattedString = `${tokens} ${message}${breakLine ? "\n" : ""}`;

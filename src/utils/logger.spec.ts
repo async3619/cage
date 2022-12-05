@@ -2,6 +2,7 @@ import stripAnsi from "strip-ansi";
 
 import { Logger, LogLevel } from "@utils/logger";
 import { sleep } from "@utils/sleep";
+import chalk from "chalk";
 
 describe("Logger class", () => {
     const TARGET_LOG_LEVELS: LogLevel[] = ["info", "warn", "error", "debug", "verbose"];
@@ -27,6 +28,24 @@ describe("Logger class", () => {
         const formattedMessage = Logger.format("{} {} {}", "a", "b", "c");
 
         expect(formattedMessage).toBe("a b c");
+    });
+
+    it("should format object correctly", () => {
+        const formattedMessage = Logger.format("{}", { a: "b", c: "d" });
+
+        expect(formattedMessage).toBe(JSON.stringify({ a: "b", c: "d" }));
+    });
+
+    it("should not format string if no arguments are provided", () => {
+        const formattedMessage = Logger.format("{} {} {}");
+
+        expect(formattedMessage).toBe("{} {} {}");
+    });
+
+    it("should style string with format tokens correctly", () => {
+        const formattedMessage = Logger.format("{bold}", "a");
+
+        expect(formattedMessage).toBe(chalk.bold("a"));
     });
 
     it("should provide methods for all log levels", () => {
