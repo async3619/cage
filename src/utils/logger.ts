@@ -5,10 +5,10 @@ import { measureTime } from "@utils/measureTime";
 import { Fn } from "@utils/types";
 
 type LoggerFn = (content: string, args?: any[], breakLine?: boolean) => void;
-export type LogLevel = "silly" | "info" | "warn" | "error" | "debug";
+export type LogLevel = "verbose" | "info" | "warn" | "error" | "debug";
 
 const LOG_LEVEL_COLOR_MAP: Record<LogLevel, Fn<string, string>> = {
-    silly: chalk.blue,
+    verbose: chalk.blue,
     info: chalk.cyan,
     warn: chalk.yellow,
     error: chalk.red,
@@ -40,14 +40,14 @@ export class Logger implements Record<LogLevel, LoggerFn> {
     public readonly warn: LoggerFn;
     public readonly error: LoggerFn;
     public readonly debug: LoggerFn;
-    public readonly silly: LoggerFn;
+    public readonly verbose: LoggerFn;
 
     public constructor(private readonly name: string) {
         this.info = this.createLoggerFunction("info");
         this.warn = this.createLoggerFunction("warn");
         this.error = this.createLoggerFunction("error");
         this.debug = this.createLoggerFunction("debug");
-        this.silly = this.createLoggerFunction("silly");
+        this.verbose = this.createLoggerFunction("verbose");
     }
 
     private createLoggerFunction = (level: LogLevel): LoggerFn => {

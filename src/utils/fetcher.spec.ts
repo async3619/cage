@@ -15,7 +15,7 @@ describe("Fetcher class", function () {
                 warn: jest.fn(),
                 error: jest.fn(),
                 debug: jest.fn(),
-                silly: jest.fn(),
+                verbose: jest.fn(),
             },
         });
     });

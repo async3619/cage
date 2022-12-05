@@ -4,7 +4,7 @@ import { Logger, LogLevel } from "@utils/logger";
 import { sleep } from "@utils/sleep";
 
 describe("Logger class", () => {
-    const TARGET_LOG_LEVELS: LogLevel[] = ["info", "warn", "error", "debug", "silly"];
+    const TARGET_LOG_LEVELS: LogLevel[] = ["info", "warn", "error", "debug", "verbose"];
     let target: Logger;
     let buffer: string[];
     let logMockFn: jest.Mock;
