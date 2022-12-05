@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 import chalk from "chalk";
 
 import { measureTime } from "@utils/measureTime";
+import { noop } from "@utils/noop";
 import { Fn } from "@utils/types";
 
 type LoggerFn = (content: string, args?: any[], breakLine?: boolean) => void;
@@ -67,6 +68,8 @@ const CHALK_FORMAT_NAMES: Array<keyof typeof chalk> = [
 ];
 
 export class Logger implements Record<LogLevel, LoggerFn> {
+    public static verbose = false;
+
     public static format(content: string, ...args: any[]): string {
         if (args.length === 0) {
             return content;
@@ -130,6 +133,10 @@ export class Logger implements Record<LogLevel, LoggerFn> {
         const levelString = LOG_LEVEL_COLOR_MAP[level](level.toUpperCase());
 
         return (content, args, breakLine = true) => {
+            if (level === "verbose" && !Logger.verbose) {
+                return noop;
+            }
+
             const tokens = chalk.green(
                 [chalk.cyan(dayjs().format("HH:mm:ss.SSS")), chalk.yellow(this.name), levelString]
                     .map(t => `[${t}]`)
@@ -161,7 +168,7 @@ export class Logger implements Record<LogLevel, LoggerFn> {
         level,
         message,
         done = "done.",
-    }: WorkOptions<T>): Promise<T | null> => {
+    }: WorkOptions<T>): Promise<T> => {
         this[level](`${message} ... `, [], false);
 
         Logger.setLock(true);
@@ -172,7 +179,7 @@ export class Logger implements Record<LogLevel, LoggerFn> {
             process.stdout.write(`failed. ${time}\n`);
             this[failedLevel](`${measuredData.exception.message}`);
             Logger.setLock(false);
-            return null;
+            throw measuredData.exception;
         }
 
         process.stdout.write(`${done} ${time}\n`);

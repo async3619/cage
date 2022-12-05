@@ -49,6 +49,8 @@ describe("Logger class", () => {
     });
 
     it("should provide methods for all log levels", () => {
+        Logger.verbose = true;
+
         const mockedLogContent = "test";
         for (const logLevel of TARGET_LOG_LEVELS) {
             clearBuffer();
@@ -59,6 +61,17 @@ describe("Logger class", () => {
             expect(buffer[0]).toContain(logLevel.toUpperCase());
             expect(buffer[0].trim().endsWith(mockedLogContent)).toBeTruthy();
         }
+
+        Logger.verbose = false;
+    });
+
+    it("should not log if verbose mode is disabled", () => {
+        Logger.verbose = false;
+
+        target.verbose("test");
+        expect(buffer).toHaveLength(0);
+
+        Logger.verbose = true;
     });
 
     it("should provide a method to clear the console", () => {
@@ -89,21 +102,19 @@ describe("Logger class", () => {
         expect(buffer[1].trim()).toMatch("done.");
     });
 
-    it("should print failed information when a work fails", async () => {
+    it("should throw an error when work failed", async () => {
         const mockedWork = async () => {
             await sleep(1000);
             throw new Error("Test");
         };
 
-        await target.work({
-            work: mockedWork,
-            message: "Test",
-            level: "info",
-        });
-
-        expect(buffer[0].trim()).toMatch(/Test ...$/);
-        expect(buffer[1].trim()).toMatch(/failed. \([0-9]*?ms\)/);
-        expect(buffer[2].trim().includes("Test")).toBeTruthy();
+        await expect(
+            target.work({
+                work: mockedWork,
+                message: "Test",
+                level: "info",
+            }),
+        ).rejects.toThrow("Test");
     });
 
     it("should format the log message correctly", () => {
