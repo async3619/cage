@@ -1,39 +1,21 @@
+import _ from "lodash";
 import * as path from "path";
 import * as fs from "fs-extra";
 import chalk from "chalk";
-import Ajv, { JSONSchemaType } from "ajv";
+import Ajv from "ajv";
 import betterAjvErrors from "better-ajv-errors";
 
 import { AVAILABLE_WATCHERS } from "@watchers";
+import { AVAILABLE_NOTIFIERS } from "@notifiers";
 
+import { ConfigData } from "@utils/config.type";
 import { Logger } from "@utils/logger";
+
+import schema from "@root/../config.schema.json";
 
 const ajv = new Ajv({ allErrors: true });
 
-interface RawConfigData {
-    target: string[];
-    watchInterval: number;
-}
-
-const schema: JSONSchemaType<RawConfigData> = {
-    type: "object",
-    properties: {
-        target: {
-            type: "array",
-            items: {
-                type: "string",
-                enum: AVAILABLE_WATCHERS.map(w => w.getName().toLowerCase()),
-            },
-        },
-        watchInterval: {
-            type: "integer",
-        },
-    },
-    required: ["target", "watchInterval"],
-    additionalProperties: false,
-};
-
-const validate = ajv.compile<RawConfigData>(schema);
+const validate = ajv.compile<ConfigData>(schema);
 
 export class Config {
     private static readonly logger = new Logger("Config");
@@ -65,7 +47,7 @@ export class Config {
             level: "info",
             message: `loading config file from ${pathToken}`,
             work: async () => {
-                const data: RawConfigData = await fs.readJSON(filePath);
+                const data: ConfigData = await fs.readJSON(filePath);
                 const valid = validate(data);
                 if (!valid && validate.errors) {
                     const output = betterAjvErrors(schema, data, validate.errors, {
@@ -82,14 +64,28 @@ export class Config {
     }
 
     public get watchers() {
-        return AVAILABLE_WATCHERS.filter(w => this.target.includes(w.getName().toLowerCase()));
+        const names = Object.keys(this.rawData.watchers);
+        return AVAILABLE_WATCHERS.filter(w => names.includes(w.getName().toLowerCase()));
     }
-    public get target() {
-        return [...this.rawData.target];
+    public get watcherOptions() {
+        return _.cloneDeep(this.rawData.watchers);
     }
+
+    public get notifiers() {
+        if (!this.rawData.notifiers) {
+            return [];
+        }
+
+        const names = Object.keys(this.rawData.notifiers);
+        return AVAILABLE_NOTIFIERS.filter(n => names.includes(n.getName().replace("Notifier", "").toLowerCase()));
+    }
+    public get notifierOptions() {
+        return _.cloneDeep(this.rawData.notifiers);
+    }
+
     public get watchInterval() {
         return this.rawData.watchInterval;
     }
 
-    private constructor(private readonly rawData: RawConfigData) {}
+    private constructor(private readonly rawData: ConfigData) {}
 }

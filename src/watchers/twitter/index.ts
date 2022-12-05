@@ -6,6 +6,10 @@ import { TwitterHelper } from "@watchers/twitter/helper";
 
 import { UserData } from "@root/repositories/models/user";
 
+export interface TwitterWatcherOptions {
+    type: "twitter";
+}
+
 export class TwitterWatcher extends BaseWatcher {
     private readonly helper: TwitterHelper = new TwitterHelper();
     private readonly userId: string;
@@ -26,7 +30,7 @@ export class TwitterWatcher extends BaseWatcher {
         this.password = process.env.CAGE_TWITTER_PASSWORD;
     }
 
-    public async initialize(): Promise<void> {
+    public async initialize(_: TwitterWatcherOptions): Promise<void> {
         if (!this.helper.isLogged) {
             await this.login(this.userId, this.password);
         }

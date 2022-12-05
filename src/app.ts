@@ -48,31 +48,50 @@ export class App extends Loggable {
             return;
         }
 
+        const watchers = this.config.watchers;
+        const notifiers = this.config.notifiers;
+
+        if (!watchers.length) {
+            this.logger.warn("no watchers are configured. exiting...");
+            return;
+        }
+
         await this.logger.work({
             level: "info",
             message: "initialize database",
             work: () => this.followerDataSource.initialize(),
         });
 
-        const targetWatchers = this.config.watchers;
-        for (const watcher of targetWatchers) {
+        for (const watcher of watchers) {
+            const options = this.config.watcherOptions[watcher.getName()];
             await watcher.loadState();
-        }
 
-        for (const watcher of targetWatchers) {
             await this.logger.work({
                 level: "info",
                 message: `initialize \`${chalk.green(watcher.getName())}\` watcher`,
-                work: () => watcher.initialize(),
+                work: () => watcher.initialize(options),
             });
-        }
 
-        for (const watcher of targetWatchers) {
             await watcher.saveState();
         }
 
-        const watcherNames = targetWatchers.map(p => `\`${chalk.green(p.getName())}\``).join(", ");
-        this.logger.info("start to watch through {} {}.", [watcherNames, pluralize("watcher", targetWatchers.length)]);
+        for (const notifier of notifiers) {
+            const options = this.config.notifierOptions?.[notifier.getName().toLowerCase()];
+            if (!options) {
+                this.logger.warn(`no options are configured for \`${chalk.green("{}")}\` notifier. skipping...`, [
+                    notifier.getName(),
+                ]);
+            }
+
+            await this.logger.work({
+                level: "info",
+                message: `initialize \`${chalk.green(notifier.getName())}\` notifier`,
+                work: () => notifier.initialize(options),
+            });
+        }
+
+        const watcherNames = watchers.map(p => `\`${chalk.green(p.getName())}\``).join(", ");
+        this.logger.info("start to watch through {} {}.", [watcherNames, pluralize("watcher", watchers.length)]);
 
         while (true) {
             try {
@@ -127,5 +146,15 @@ export class App extends Loggable {
 
         this.logger.info("tracked {} new {}", [newFollowers.length, pluralize("follower", newFollowers.length)]);
         this.logger.info("tracked {} un{}", [unfollowers.length, pluralize("follower", unfollowers.length)]);
+
+        const notifiers = this.config.notifiers;
+        if (!notifiers.length) {
+            this.logger.info("no notifiers are configured. skipping notification...");
+            return;
+        }
+
+        for (const notifier of notifiers) {
+            await notifier.notify(newLogs);
+        }
     };
 }

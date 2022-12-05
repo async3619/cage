@@ -67,20 +67,26 @@ export class Fetcher implements Serializable, Hydratable {
             fetchHeaders.set("Content-Type", "application/json");
         }
 
-        const response = await this.fetchImpl(endpoint, {
-            method: method,
-            headers: fetchHeaders,
-            body: method === "GET" ? undefined : JSON.stringify(data),
-        });
+        try {
+            const response = await this.fetchImpl(endpoint, {
+                method: method,
+                headers: fetchHeaders,
+                body: method === "GET" ? undefined : JSON.stringify(data),
+            });
 
-        this.setCookies(response.headers.get("set-cookie"));
-
-        if (!response.ok) {
-            if (retryCount === 0) {
-                throw new Error(`Failed to fetch ${url}: (${response.status} ${response.statusText})`);
+            if (!response.ok) {
+                throw new Error(`${response.status} (${response.statusText})`);
             }
 
-            this.logger.error("failed to fetch {}: ({} {})", [url, response.status, response.statusText]);
+            this.setCookies(response.headers.get("set-cookie"));
+
+            return response;
+        } catch (e) {
+            if (retryCount === 0 || !(e instanceof Error)) {
+                throw e;
+            }
+
+            this.logger.error("failed to fetch {}: {}", [url, e.message]);
             if (retryDelay > 0) {
                 this.logger.error("retrying in {}ms ...", [retryDelay]);
             } else {
@@ -97,8 +103,6 @@ export class Fetcher implements Serializable, Hydratable {
                 retryDelay,
             });
         }
-
-        return response;
     }
 
     public serialize(): Record<string, any> {

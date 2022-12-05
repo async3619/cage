@@ -94,6 +94,8 @@ export class TwitterHelper implements Serializable, Hydratable {
             url: "https://twitter.com/i/api/graphql/_gXC5CopoM8fIgawvyGpIg/Followers",
             headers: this.getHeaders(),
             method: "GET",
+            retryCount: 3,
+            retryDelay: 500,
             data: {
                 variables: JSON.stringify(variables),
                 features: JSON.stringify({

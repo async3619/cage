@@ -24,6 +24,18 @@ interface WorkOptions<T> {
 }
 
 export class Logger implements Record<LogLevel, LoggerFn> {
+    public static format(content: string, ...args: any[]): string {
+        const formattedArgs = args?.map(arg => {
+            if (typeof arg === "object") {
+                return JSON.stringify(arg, null, 4);
+            }
+
+            return arg;
+        });
+
+        return formattedArgs ? content.replace(/{}/g, () => formattedArgs.shift()) : content;
+    }
+
     private static readonly buffer: string[] = [];
     private static isLocked = false;
 

@@ -13,11 +13,7 @@ export abstract class BaseWatcher extends Loggable {
         super(name);
     }
 
-    public getName(): string {
-        return this.name;
-    }
-
-    public abstract initialize(): Promise<void>;
+    public abstract initialize(options: Record<string, any>): Promise<void>;
 
     public abstract doWatch(): Promise<UserData[]>;
 

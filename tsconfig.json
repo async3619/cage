@@ -7,7 +7,6 @@
         "experimentalDecorators": true,
         "allowSyntheticDefaultImports": true,
         "target": "es2017",
-        "sourceMap": true,
         "inlineSourceMap": true,
         "resolveJsonModule": true,
         "outDir": "./dist",
@@ -31,7 +30,9 @@
             "@watchers/*": ["./src/watchers/*"],
             "@watchers": ["./src/watchers"],
             "@followers/*": ["./src/followers/*"],
-            "@repositories/*": ["./src/repositories/*"]
+            "@repositories/*": ["./src/repositories/*"],
+            "@notifiers/*": ["./src/notifiers/*"],
+            "@notifiers": ["./src/notifiers"]
         }
     }
 }

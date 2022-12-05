@@ -1,5 +1,9 @@
 import { Logger } from "@utils/logger";
 
+export type TypeMap<T extends { type: string }> = {
+    [TKey in T["type"]]: TKey extends T["type"] ? Extract<T, { type: TKey }> : never;
+};
+
 export type Fn<TArgs = void, TReturn = void> = TArgs extends unknown[]
     ? (...arg: TArgs) => TReturn
     : TArgs extends void
@@ -22,5 +26,9 @@ export abstract class Loggable {
 
     protected constructor(protected readonly name: string) {
         this.logger = new Logger(name);
+    }
+
+    public getName(): string {
+        return this.name;
     }
 }
