@@ -72,6 +72,7 @@
         "better-ajv-errors": "^1.2.0",
         "chalk": "^4.1.2",
         "commander": "^9.4.1",
+        "conventional-changelog-conventionalcommits": "^5.0.0",
         "cronstrue": "^2.20.0",
         "dayjs": "^1.11.6",
         "fs-extra": "^11.1.0",
