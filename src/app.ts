@@ -15,8 +15,8 @@ import { AVAILABLE_WATCHERS } from "@watchers";
 
 import { Config } from "@utils/config";
 import { throttle } from "@utils/throttle";
-import { Env, Loggable, ProviderInitializeContext } from "@utils/types";
 import { mapBy } from "@utils/mapBy";
+import { Env, Loggable, ProviderInitializeContext } from "@utils/types";
 
 export class App extends Loggable {
     private readonly followerDataSource: DataSource;
@@ -42,17 +42,10 @@ export class App extends Loggable {
 
         this.userRepository = new UserRepository(this.followerDataSource.getRepository(User));
         this.userLogRepository = new UserLogRepository(this.followerDataSource.getRepository(UserLog));
-
-        process.on("exit", this.cleanUp.bind(this));
-        process.on("SIGTERM", this.cleanUp.bind(this));
-        process.on("SIGINT", this.cleanUp.bind(this));
-        process.on("SIGUSR1", this.cleanUp.bind(this));
-        process.on("SIGUSR2", this.cleanUp.bind(this));
     }
 
     public async run() {
         this.logger.clear();
-        this.logger.info("Hello World from Cage! 🐦");
 
         this.config = await Config.create();
         if (!this.config) {
@@ -61,12 +54,6 @@ export class App extends Loggable {
         }
 
         const targetWatchers = this.config.watchers;
-        await this.logger.work({
-            level: "info",
-            message: "initialize database ... ",
-            work: () => this.followerDataSource.initialize(),
-        });
-
         for (const watcher of targetWatchers) {
             await this.logger.work({
                 level: "debug",
@@ -80,6 +67,26 @@ export class App extends Loggable {
                     }
 
                     watcher.hydrate(await fs.readJSON(filePath));
+                },
+            });
+        }
+
+        await this.logger.work({
+            level: "info",
+            message: "initialize database ... ",
+            work: () => this.followerDataSource.initialize(),
+        });
+
+        for (const watcher of targetWatchers) {
+            await this.logger.work({
+                level: "debug",
+                message: `saving serialized data of \`${chalk.green(watcher.getName())}\` watcher ... `,
+                work: async () => {
+                    const data = watcher.serialize();
+                    const filePath = `./dump/${watcher.getName().toLowerCase()}.json`;
+
+                    await fs.ensureFile(filePath);
+                    await fs.writeJson(filePath, data, { spaces: 4 });
                 },
             });
         }
@@ -101,6 +108,10 @@ export class App extends Loggable {
                 this.logger.debug(`last task finished in ${chalk.green("{}")}.`, [
                     prettyMilliseconds(elapsedTime, { verbose: true }),
                 ]);
+
+                if (this.cleaningUp) {
+                    break;
+                }
             } catch (e) {
                 if (!(e instanceof Error)) {
                     throw e;
@@ -109,39 +120,6 @@ export class App extends Loggable {
                 this.logger.error("An error occurred while processing scheduled task: {}", [e.message]);
             }
         }
-    }
-
-    private async cleanUp() {
-        if (!this.config || this.cleaningUp) {
-            return;
-        }
-
-        this.cleaningUp = true;
-
-        const targetWatchers = this.config.watchers;
-        for (const watcher of targetWatchers) {
-            await this.logger.work({
-                level: "info",
-                message: `finalize \`${chalk.green(watcher.getName())}\` watcher ... `,
-                work: () => watcher.finalize(),
-            });
-        }
-
-        for (const watcher of targetWatchers) {
-            await this.logger.work({
-                level: "debug",
-                message: `saving serialized data of \`${chalk.green(watcher.getName())}\` watcher ... `,
-                work: async () => {
-                    const data = watcher.serialize();
-                    const filePath = `./dump/${watcher.getName().toLowerCase()}.json`;
-
-                    await fs.ensureFile(filePath);
-                    await fs.writeJson(filePath, data, { spaces: 4 });
-                },
-            });
-        }
-
-        this.logger.info("Bye World from Cage! 🐦");
     }
 
     private onCycle = async () => {

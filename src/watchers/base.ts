@@ -11,7 +11,6 @@ export abstract class BaseWatcher extends Loggable implements Serializable, Hydr
     }
 
     public abstract initialize(context: ProviderInitializeContext): Promise<void>;
-    public abstract finalize(): Promise<void>;
 
     public abstract doWatch(): Promise<UserData[]>;
 

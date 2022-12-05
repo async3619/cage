@@ -28,7 +28,6 @@ export class TwitterWatcher extends BaseWatcher {
             await this.login(env.CAGE_TWITTER_USER_ID, env.CAGE_TWITTER_PASSWORD);
         }
     }
-    public async finalize(): Promise<void> {}
 
     public async doWatch() {
         const allFollowers = await this.helper.getAllFollowers();
