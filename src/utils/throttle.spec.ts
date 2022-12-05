@@ -20,7 +20,7 @@ describe("throttle() Function", function () {
         const [result, elapsedTime] = await throttle(target, 1000, true);
 
         expect(result).toBe(1);
-        expect(elapsedTime).toBeGreaterThanOrEqual(1000);
+        expect(elapsedTime).toBeGreaterThanOrEqual(990);
     });
 
     it("should return the result of the target promise with the elapsed time", async function () {
@@ -28,6 +28,6 @@ describe("throttle() Function", function () {
         const [result, elapsedTime] = await throttle(target, 1000, true);
 
         expect(result).toBe(1);
-        expect(elapsedTime).toBeGreaterThanOrEqual(1000);
+        expect(elapsedTime).toBeGreaterThanOrEqual(990);
     });
 });
