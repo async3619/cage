@@ -57,8 +57,21 @@ export class TwitterHelper implements Serializable, Hydratable {
         return this.currentUserId;
     }
 
-    public doAuth() {
-        return new TwitterAuth(this.fetcher, this.getHeaders.bind(this), token => (this.guest = token));
+    public async doAuth(userId: string, password: string) {
+        await new TwitterAuth(this.fetcher, this.getHeaders.bind(this), token => (this.guest = token))
+            .doInstrumentation()
+            .setUserId(userId)
+            .setPassword(password)
+            .doDuplicationCheck()
+            .action();
+
+        const { twid } = this.fetcher.getCookies();
+        if (!twid) {
+            throw new Error("twid cookie not found");
+        }
+
+        const [, currentUserId] = twid.replace(/"/g, "").split("=");
+        this.currentUserId = currentUserId;
     }
 
     public async getFollowers(cursor: FollowerCursor | null = null): Promise<GetFollowersResult> {

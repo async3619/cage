@@ -92,7 +92,7 @@ export class Logger implements Record<LogLevel, LoggerFn> {
         message,
         done = "done.",
     }: WorkOptions<T>): Promise<T | null> => {
-        this[level](message, [], false);
+        this[level](`${message} ... `, [], false);
 
         Logger.setLock(true);
         const measuredData = await measureTime(work);

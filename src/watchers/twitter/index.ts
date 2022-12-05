@@ -6,26 +6,29 @@ import { TwitterHelper } from "@watchers/twitter/helper";
 
 import { UserData } from "@root/repositories/models/user";
 
-import { ProviderInitializeContext } from "@utils/types";
-
-export type TWITTER_PROVIDER_ENV_KEYS = "TWITTER_USER_ID" | "TWITTER_PASSWORD";
-
 export class TwitterWatcher extends BaseWatcher {
     private readonly helper: TwitterHelper = new TwitterHelper();
+    private readonly userId: string;
+    private readonly password: string;
 
     public constructor() {
-        super("Twitter");
-    }
-
-    public async initialize({ env }: ProviderInitializeContext): Promise<void> {
-        if (!env.CAGE_TWITTER_USER_ID) {
+        if (!process.env.CAGE_TWITTER_USER_ID) {
             throw new Error("Environment variable 'CAGE_TWITTER_USER_ID' should be provided.");
-        } else if (!env.CAGE_TWITTER_PASSWORD) {
+        }
+
+        if (!process.env.CAGE_TWITTER_PASSWORD) {
             throw new Error("Environment variable 'CAGE_TWITTER_PASSWORD' should be provided.");
         }
 
+        super("Twitter", [process.env.CAGE_TWITTER_USER_ID, process.env.CAGE_TWITTER_PASSWORD]);
+
+        this.userId = process.env.CAGE_TWITTER_USER_ID;
+        this.password = process.env.CAGE_TWITTER_PASSWORD;
+    }
+
+    public async initialize(): Promise<void> {
         if (!this.helper.isLogged) {
-            await this.login(env.CAGE_TWITTER_USER_ID, env.CAGE_TWITTER_PASSWORD);
+            await this.login(this.userId, this.password);
         }
     }
 
@@ -45,22 +48,16 @@ export class TwitterWatcher extends BaseWatcher {
         }));
     }
 
-    public serialize(): Record<string, any> {
+    protected serialize(): Record<string, any> {
         return {
             helper: this.helper.serialize(),
         };
     }
-    public hydrate(data: Record<string, any>): void {
+    protected hydrate(data: Record<string, any>): void {
         this.helper.hydrate(data.helper);
     }
 
     private async login(userId: string, password: string) {
-        await this.helper
-            .doAuth()
-            .doInstrumentation()
-            .setUserId(userId)
-            .setPassword(password)
-            .doDuplicationCheck()
-            .action();
+        await this.helper.doAuth(userId, password);
     }
 }

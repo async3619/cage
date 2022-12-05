@@ -63,7 +63,7 @@ export class Config {
 
         return Config.logger.work({
             level: "info",
-            message: `loading config file from ${pathToken} ... `,
+            message: `loading config file from ${pathToken}`,
             work: async () => {
                 const data: RawConfigData = await fs.readJSON(filePath);
                 const valid = validate(data);

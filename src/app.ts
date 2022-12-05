@@ -1,4 +1,3 @@
-import * as fs from "fs-extra";
 import * as path from "path";
 import { DataSource } from "typeorm";
 import chalk from "chalk";
@@ -16,14 +15,10 @@ import { AVAILABLE_WATCHERS } from "@watchers";
 import { Config } from "@utils/config";
 import { throttle } from "@utils/throttle";
 import { mapBy } from "@utils/mapBy";
-import { Env, Loggable, ProviderInitializeContext } from "@utils/types";
+import { Loggable } from "@utils/types";
 
 export class App extends Loggable {
     private readonly followerDataSource: DataSource;
-    private readonly initializeContext: Readonly<ProviderInitializeContext> = {
-        env: process.env as Env,
-    };
-
     private readonly userRepository: UserRepository;
     private readonly userLogRepository: UserLogRepository;
 
@@ -53,50 +48,27 @@ export class App extends Loggable {
             return;
         }
 
-        const targetWatchers = this.config.watchers;
-        for (const watcher of targetWatchers) {
-            await this.logger.work({
-                level: "debug",
-                message: `loading lastly dumped data of \`${chalk.green(watcher.getName())}\` watcher ... `,
-                work: async () => {
-                    const fileName = `${watcher.getName().toLowerCase()}.json`;
-                    const filePath = `./dump/${fileName}`;
-
-                    if (!fs.existsSync(filePath)) {
-                        throw new Error(`Dump file \`${fileName}\` does not exist.`);
-                    }
-
-                    watcher.hydrate(await fs.readJSON(filePath));
-                },
-            });
-        }
-
         await this.logger.work({
             level: "info",
-            message: "initialize database ... ",
+            message: "initialize database",
             work: () => this.followerDataSource.initialize(),
         });
 
+        const targetWatchers = this.config.watchers;
         for (const watcher of targetWatchers) {
-            await this.logger.work({
-                level: "debug",
-                message: `saving serialized data of \`${chalk.green(watcher.getName())}\` watcher ... `,
-                work: async () => {
-                    const data = watcher.serialize();
-                    const filePath = `./dump/${watcher.getName().toLowerCase()}.json`;
-
-                    await fs.ensureFile(filePath);
-                    await fs.writeJson(filePath, data, { spaces: 4 });
-                },
-            });
+            await watcher.loadState();
         }
 
         for (const watcher of targetWatchers) {
             await this.logger.work({
                 level: "info",
-                message: `initialize \`${chalk.green(watcher.getName())}\` watcher ... `,
-                work: () => watcher.initialize(this.initializeContext),
+                message: `initialize \`${chalk.green(watcher.getName())}\` watcher`,
+                work: () => watcher.initialize(),
             });
+        }
+
+        for (const watcher of targetWatchers) {
+            await watcher.saveState();
         }
 
         const watcherNames = targetWatchers.map(p => `\`${chalk.green(p.getName())}\``).join(", ");
