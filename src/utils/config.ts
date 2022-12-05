@@ -22,6 +22,10 @@ export class Config {
     private static readonly DEFAULT_CONFIG_PATH = path.join(process.cwd(), "./config.json");
 
     public static async create(filePath: string = Config.DEFAULT_CONFIG_PATH) {
+        if (!path.isAbsolute(filePath)) {
+            filePath = path.join(process.cwd(), filePath);
+        }
+
         const pathToken = `\`${chalk.green(filePath)}\``;
 
         if (!fs.existsSync(filePath)) {
