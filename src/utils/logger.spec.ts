@@ -60,7 +60,7 @@ describe("Logger class", () => {
 
         expect(target.work).toBeDefined();
         expect(mockedWorkResult).toBe(1);
-        expect(buffer[0].trim()).toMatch(/Test$/);
+        expect(buffer[0].trim()).toMatch(/Test ...$/);
         expect(buffer[1].trim()).toMatch("done.");
     });
 
@@ -76,7 +76,7 @@ describe("Logger class", () => {
             level: "info",
         });
 
-        expect(buffer[0].trim()).toMatch(/Test$/);
+        expect(buffer[0].trim()).toMatch(/Test ...$/);
         expect(buffer[1].trim()).toMatch(/failed. \([0-9]*?ms\)/);
         expect(buffer[2].trim().includes("Test")).toBeTruthy();
     });
