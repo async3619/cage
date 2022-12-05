@@ -15,6 +15,9 @@ import { AVAILABLE_WATCHERS } from "@watchers";
 import { Config } from "@utils/config";
 import { throttle } from "@utils/throttle";
 import { mapBy } from "@utils/mapBy";
+import { measureTime } from "@utils/measureTime";
+import { sleep } from "@utils/sleep";
+import { Logger } from "@utils/logger";
 import { Loggable } from "@utils/types";
 
 export class App extends Loggable {
@@ -25,13 +28,14 @@ export class App extends Loggable {
     private cleaningUp = false;
     private config: Config | null = null;
 
-    public constructor() {
+    public constructor(private readonly configFilePath: string, private readonly verbose: boolean) {
         super("App");
+        Logger.verbose = verbose;
+
         this.followerDataSource = new DataSource({
             type: "sqlite",
             database: path.join(process.cwd(), "./data.sqlite"),
             entities: [User, UserLog],
-            dropSchema: true,
             synchronize: true,
         });
 
@@ -42,7 +46,7 @@ export class App extends Loggable {
     public async run() {
         this.logger.clear();
 
-        this.config = await Config.create();
+        this.config = await Config.create(this.configFilePath);
         if (!this.config) {
             process.exit(-1);
             return;
@@ -93,12 +97,28 @@ export class App extends Loggable {
         const watcherNames = watchers.map(p => `\`${chalk.green(p.getName())}\``).join(", ");
         this.logger.info("start to watch through {} {}.", [watcherNames, pluralize("watcher", watchers.length)]);
 
+        const interval = this.config.watchInterval;
         while (true) {
             try {
-                const [, elapsedTime] = await throttle(this.onCycle.bind(this), this.config.watchInterval, true);
-                this.logger.debug(`last task finished in ${chalk.green("{}")}.`, [
-                    prettyMilliseconds(elapsedTime, { verbose: true }),
-                ]);
+                const [, elapsedTime] = await throttle(
+                    async () => {
+                        const { elapsedTime: time } = await measureTime(async () => this.onCycle());
+
+                        this.logger.info(`last task finished in ${chalk.green("{}")}.`, [
+                            prettyMilliseconds(time, { verbose: true }),
+                        ]);
+
+                        this.logger.info("waiting {green} for next cycle ...", [
+                            prettyMilliseconds(interval - time, { verbose: true }),
+                        ]);
+                    },
+                    this.config.watchInterval,
+                    true,
+                );
+
+                if (elapsedTime < interval) {
+                    await sleep(interval - elapsedTime);
+                }
 
                 if (this.cleaningUp) {
                     break;
@@ -145,7 +165,7 @@ export class App extends Loggable {
         this.logger.info(`all {} {} saved`, [newLogs.length, pluralize("log", newLogs.length)]);
 
         this.logger.info("tracked {} new {}", [newFollowers.length, pluralize("follower", newFollowers.length)]);
-        this.logger.info("tracked {} un{}", [unfollowers.length, pluralize("follower", unfollowers.length)]);
+        this.logger.info("tracked {} {}", [unfollowers.length, pluralize("unfollower", unfollowers.length)]);
 
         const notifiers = this.config.notifiers;
         if (!notifiers.length) {

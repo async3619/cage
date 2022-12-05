@@ -25,3 +25,56 @@
 ## Introduction
 
 Cage is a cli application for detecting unfollowers on any social services.
+
+## Usage
+
+```bash
+$ npm install -g cage-cli
+
+$ cage --help
+```
+
+## Supported Services
+
+### Watchers
+
+| Service   |      Support?       |
+| --------- | :-----------------: |
+| Twitter   | ⚠️ (Partially, WIP) |
+| Instagram |         ❌          |
+| TikTok    |         ❌          |
+| YouTube   |         ❌          |
+| Twitch    |         ❌          |
+| Facebook  |         ❌          |
+| Reddit    |         ❌          |
+| Discord   |         ❌          |
+| GitHub    |         ❌          |
+
+### Notifiers
+
+| Service         | Support? |
+| --------------- | :------: |
+| Discord WebHook |    ✅    |
+
+## Configuration
+
+this application reads configuration file from `./cage.config.json` by default.
+
+You can use json schema file `config.schema.json` on this repository. here is example configuration file content:
+
+```json
+{
+    "watchers": {
+        "twitter": {
+            "type": "twitter"
+        }
+    },
+    "watchInterval": 60000,
+    "notifiers": {
+        "discord": {
+            "type": "discord",
+            "webhookUrl": "https://discord.com/api/webhooks/..."
+        }
+    }
+}
+```
