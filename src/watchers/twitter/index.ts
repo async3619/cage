@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
+import pluralize from "pluralize";
+
 import { BaseWatcher } from "@watchers/base";
 import { TwitterHelper } from "@watchers/twitter/helper";
 
@@ -31,7 +33,10 @@ export class TwitterWatcher extends BaseWatcher {
     public async doWatch() {
         const allFollowers = await this.helper.getAllFollowers();
 
-        this.logger.silly(`Successfully crawled ${allFollowers.length} followers`);
+        this.logger.silly("Successfully crawled {} {}", [
+            allFollowers.length,
+            pluralize("follower", allFollowers.length),
+        ]);
 
         return allFollowers.map<UserData>(user => ({
             uniqueId: user.rest_id,

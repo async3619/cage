@@ -80,11 +80,11 @@ export class Fetcher implements Serializable, Hydratable {
                 throw new Error(`Failed to fetch ${url}: (${response.status} ${response.statusText})`);
             }
 
-            this.logger.error(`Failed to fetch ${url}: (${response.status} ${response.statusText})`);
+            this.logger.error("failed to fetch {}: ({} {})", [url, response.status, response.statusText]);
             if (retryDelay > 0) {
-                this.logger.error(`Retrying in ${retryDelay}ms ...`);
+                this.logger.error("retrying in {}ms ...", [retryDelay]);
             } else {
-                this.logger.error("Retrying ...");
+                this.logger.error("retrying ...");
             }
 
             await sleep(retryDelay);

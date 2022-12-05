@@ -4,7 +4,7 @@ import chalk from "chalk";
 import { measureTime } from "@utils/measureTime";
 import { Fn } from "@utils/types";
 
-type LoggerFn = (content: string, breakLine?: boolean) => void;
+type LoggerFn = (content: string, args?: any[], breakLine?: boolean) => void;
 export type LogLevel = "silly" | "info" | "warn" | "error" | "debug";
 
 const LOG_LEVEL_COLOR_MAP: Record<LogLevel, Fn<string, string>> = {
@@ -53,14 +53,26 @@ export class Logger implements Record<LogLevel, LoggerFn> {
     private createLoggerFunction = (level: LogLevel): LoggerFn => {
         const levelString = LOG_LEVEL_COLOR_MAP[level](level.toUpperCase());
 
-        return (content, breakLine = true) => {
+        return (content, args, breakLine = true) => {
             const tokens = chalk.green(
                 [chalk.cyan(dayjs().format("HH:mm:ss.SSS")), chalk.yellow(this.name), levelString]
                     .map(t => `[${t}]`)
                     .join(""),
             );
 
-            const formattedString = `${tokens} ${content}${breakLine ? "\n" : ""}`;
+            // replace all {} with the corresponding argument
+            let message = content;
+            if (args) {
+                message = content.replace(/{}/g, () => {
+                    if (args.length === 0) {
+                        return "{}";
+                    }
+
+                    return args.shift();
+                });
+            }
+
+            const formattedString = `${tokens} ${message}${breakLine ? "\n" : ""}`;
             if (Logger.isLocked) {
                 Logger.buffer.push(formattedString);
             } else {
@@ -80,7 +92,7 @@ export class Logger implements Record<LogLevel, LoggerFn> {
         message,
         done = "done.",
     }: WorkOptions<T>): Promise<T | null> => {
-        this[level](message, false);
+        this[level](message, [], false);
 
         Logger.setLock(true);
         const measuredData = await measureTime(work);
@@ -88,7 +100,7 @@ export class Logger implements Record<LogLevel, LoggerFn> {
 
         if ("exception" in measuredData) {
             process.stdout.write(`failed. ${time}\n`);
-            this[failedLevel](`Last task failed with error: ${measuredData.exception.message}`);
+            this[failedLevel](`${measuredData.exception.message}`);
             Logger.setLock(false);
             return null;
         }

@@ -93,20 +93,20 @@ export class App extends Loggable {
         }
 
         const watcherNames = targetWatchers.map(p => `\`${chalk.green(p.getName())}\``).join(", ");
-        this.logger.info(`start to watch through ${watcherNames} watchers${targetWatchers.length === 1 ? "" : "s"}.`);
+        this.logger.info("start to watch through {} {}.", [watcherNames, pluralize("watcher", targetWatchers.length)]);
 
         while (true) {
             try {
                 const [, elapsedTime] = await throttle(this.onCycle.bind(this), this.config.watchInterval, true);
-                this.logger.debug(
-                    `last task finished in ${chalk.green(prettyMilliseconds(elapsedTime, { verbose: true }))}.`,
-                );
+                this.logger.debug(`last task finished in ${chalk.green("{}")}.`, [
+                    prettyMilliseconds(elapsedTime, { verbose: true }),
+                ]);
             } catch (e) {
                 if (!(e instanceof Error)) {
                     throw e;
                 }
 
-                this.logger.error(`An error occurred while processing scheduled task: ${e.message}`);
+                this.logger.error("An error occurred while processing scheduled task: {}", [e.message]);
             }
         }
     }
@@ -157,7 +157,7 @@ export class App extends Loggable {
             allUserData.push(...userData);
         }
 
-        this.logger.info(`All ${allUserData.length} ${pluralize("follower", allUserData.length)} collected.`);
+        this.logger.info(`all {} {} collected.`, [allUserData.length, pluralize("follower", allUserData.length)]);
 
         const followingMap = await this.userLogRepository.getFollowStatusMap();
         const oldUsers = await this.userRepository.find();
@@ -173,9 +173,9 @@ export class App extends Loggable {
             [unfollowers, UserLogType.Unfollow],
         ]);
 
-        this.logger.info(`all ${newLogs.length} ${pluralize("log", newLogs.length)} saved.`);
+        this.logger.info(`all {} {} saved`, [newLogs.length, pluralize("log", newLogs.length)]);
 
-        this.logger.info(`tracked ${newFollowers.length} new ${pluralize("follower", newFollowers.length)}.`);
-        this.logger.info(`tracked ${unfollowers.length} un${pluralize("follower", unfollowers.length)}.`);
+        this.logger.info("tracked {} new {}", [newFollowers.length, pluralize("follower", newFollowers.length)]);
+        this.logger.info("tracked {} un{}", [unfollowers.length, pluralize("follower", unfollowers.length)]);
     };
 }

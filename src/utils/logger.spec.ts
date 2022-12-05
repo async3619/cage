@@ -78,6 +78,21 @@ describe("Logger class", () => {
 
         expect(buffer[0].trim()).toMatch(/Test$/);
         expect(buffer[1].trim()).toMatch(/failed. \([0-9]*?ms\)/);
-        expect(buffer[2].trim().includes("Last task failed with error: Test")).toBeTruthy();
+        expect(buffer[2].trim().includes("Test")).toBeTruthy();
+    });
+
+    it("should format the log message correctly", () => {
+        const mockedLogContent = "test {} {}";
+        const mockedArgs = ["1", "2"];
+        target.info(mockedLogContent, mockedArgs);
+
+        expect(buffer[0].trim().endsWith("test 1 2")).toBeTruthy();
+    });
+
+    it("should leave the {} in the log message if there are no arguments", () => {
+        const mockedLogContent = "test {} {}";
+        target.info(mockedLogContent, []);
+
+        expect(buffer[0].trim().endsWith("test {} {}")).toBeTruthy();
     });
 });
