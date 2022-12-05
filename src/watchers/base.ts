@@ -9,7 +9,7 @@ import { Loggable } from "@utils/types";
 export abstract class BaseWatcher extends Loggable {
     private readonly stateFileDirectory = path.join(process.cwd(), "./dump/");
 
-    protected constructor(name: string, private readonly hashData: any) {
+    protected constructor(name: string) {
         super(name);
     }
 
@@ -58,15 +58,17 @@ export abstract class BaseWatcher extends Loggable {
         });
     }
 
-    protected async hash() {
-        const hash = await argon2.hash(JSON.stringify(this.hashData));
+    private async hash() {
+        const hash = await argon2.hash(JSON.stringify(this.getHashData()));
         return Buffer.from(hash).toString("base64");
     }
-    protected async checkHash(hash: string) {
+    private async checkHash(hash: string) {
         // base64 to string
         hash = Buffer.from(hash, "base64").toString("utf-8");
-        return argon2.verify(hash, JSON.stringify(this.hashData));
+        return argon2.verify(hash, JSON.stringify(this.getHashData()));
     }
+
+    protected abstract getHashData(): any;
 
     protected abstract serialize(): Record<string, any>;
     protected abstract hydrate(data: Record<string, any>): void;

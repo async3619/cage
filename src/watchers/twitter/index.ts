@@ -16,21 +16,21 @@ export class TwitterWatcher extends BaseWatcher {
     private readonly password: string;
 
     public constructor() {
-        if (!process.env.CAGE_TWITTER_USER_ID) {
-            throw new Error("Environment variable 'CAGE_TWITTER_USER_ID' should be provided.");
-        }
+        super("Twitter");
 
-        if (!process.env.CAGE_TWITTER_PASSWORD) {
-            throw new Error("Environment variable 'CAGE_TWITTER_PASSWORD' should be provided.");
-        }
-
-        super("Twitter", [process.env.CAGE_TWITTER_USER_ID, process.env.CAGE_TWITTER_PASSWORD]);
-
-        this.userId = process.env.CAGE_TWITTER_USER_ID;
-        this.password = process.env.CAGE_TWITTER_PASSWORD;
+        this.userId = process.env.CAGE_TWITTER_USER_ID || "";
+        this.password = process.env.CAGE_TWITTER_PASSWORD || "";
     }
 
     public async initialize(_: TwitterWatcherOptions): Promise<void> {
+        if (!this.userId) {
+            throw new Error("Environment variable 'CAGE_TWITTER_USER_ID' should be provided.");
+        }
+
+        if (!this.password) {
+            throw new Error("Environment variable 'CAGE_TWITTER_PASSWORD' should be provided.");
+        }
+
         if (!this.helper.isLogged) {
             await this.login(this.userId, this.password);
         }
@@ -50,6 +50,10 @@ export class TwitterWatcher extends BaseWatcher {
             displayName: user.legacy.name,
             from: this.getName().toLowerCase(),
         }));
+    }
+
+    protected getHashData(): any {
+        return [this.userId, this.password];
     }
 
     protected serialize(): Record<string, any> {
