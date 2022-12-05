@@ -52,7 +52,6 @@ export class TwitterHelper implements Serializable, Hydratable {
 
             const [, userId] = twid.replace(/"/g, "").split("=");
             this.currentUserId = userId;
-            console.log(userId);
         }
 
         return this.currentUserId;
@@ -78,35 +77,30 @@ export class TwitterHelper implements Serializable, Hydratable {
             variables.cursor = cursor;
         }
 
-        const features = {
-            responsive_web_twitter_blue_verified_badge_is_enabled: true,
-            verified_phone_label_enabled: false,
-            responsive_web_graphql_timeline_navigation_enabled: true,
-            unified_cards_ad_metadata_container_dynamic_card_content_query_enabled: true,
-            tweetypie_unmention_optimization_enabled: true,
-            responsive_web_uc_gql_enabled: true,
-            vibe_api_enabled: true,
-            responsive_web_edit_tweet_api_enabled: true,
-            graphql_is_translatable_rweb_tweet_is_translatable_enabled: true,
-            standardized_nudges_misinfo: true,
-            tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled: false,
-            interactive_text_enabled: true,
-            responsive_web_text_conversations_enabled: false,
-            responsive_web_enhance_cards_enabled: true,
-        };
-
-        const params = new URLSearchParams({
-            variables: JSON.stringify(variables),
-            features: JSON.stringify(features),
-        });
-
-        const data = await this.fetcher.fetchJson<FollowerAPIResponse>(
-            `https://twitter.com/i/api/graphql/_gXC5CopoM8fIgawvyGpIg/Followers?${params.toString()}`,
-            {
-                headers: this.getHeaders(),
-                method: "GET",
+        const data = await this.fetcher.fetchJson<FollowerAPIResponse>({
+            url: "https://twitter.com/i/api/graphql/_gXC5CopoM8fIgawvyGpIg/Followers",
+            headers: this.getHeaders(),
+            method: "GET",
+            data: {
+                variables: JSON.stringify(variables),
+                features: JSON.stringify({
+                    responsive_web_twitter_blue_verified_badge_is_enabled: true,
+                    verified_phone_label_enabled: false,
+                    responsive_web_graphql_timeline_navigation_enabled: true,
+                    unified_cards_ad_metadata_container_dynamic_card_content_query_enabled: true,
+                    tweetypie_unmention_optimization_enabled: true,
+                    responsive_web_uc_gql_enabled: true,
+                    vibe_api_enabled: true,
+                    responsive_web_edit_tweet_api_enabled: true,
+                    graphql_is_translatable_rweb_tweet_is_translatable_enabled: true,
+                    standardized_nudges_misinfo: true,
+                    tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled: false,
+                    interactive_text_enabled: true,
+                    responsive_web_text_conversations_enabled: false,
+                    responsive_web_enhance_cards_enabled: true,
+                }),
             },
-        );
+        });
 
         if (process.env.NODE_ENV === "development") {
             await fs.writeJson("followers.json", data, {
