@@ -23,6 +23,12 @@ describe("Logger class", () => {
         jest.spyOn(process.stdout, "write").mockImplementation(logMockFn);
     });
 
+    it("should format string correctly", () => {
+        const formattedMessage = Logger.format("{} {} {}", "a", "b", "c");
+
+        expect(formattedMessage).toBe("a b c");
+    });
+
     it("should provide methods for all log levels", () => {
         const mockedLogContent = "test";
         for (const logLevel of TARGET_LOG_LEVELS) {
