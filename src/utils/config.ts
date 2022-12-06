@@ -2,20 +2,16 @@ import _ from "lodash";
 import * as path from "path";
 import * as fs from "fs-extra";
 import chalk from "chalk";
-import Ajv from "ajv";
 import betterAjvErrors from "better-ajv-errors";
 
 import { createWatcher, WatcherMap, WatcherPair, WatcherTypes } from "@watchers";
 import { AVAILABLE_NOTIFIERS } from "@notifiers";
 
+import { DEFAULT_CONFIG, validate } from "@utils/config.const";
 import { ConfigData } from "@utils/config.type";
 import { Logger } from "@utils/logger";
 
 import schema from "@root/../config.schema.json";
-
-const ajv = new Ajv({ allErrors: true });
-
-const validate = ajv.compile<ConfigData>(schema);
 
 export class Config {
     private static readonly logger = new Logger("Config");
@@ -33,16 +29,9 @@ export class Config {
                 `config file ${pathToken} does not exist. we will make a new default config file for you.`,
             );
 
-            await fs.writeJSON(
-                filePath,
-                {
-                    targetProviders: ["twitter"],
-                    watchInterval: 60000,
-                },
-                {
-                    spaces: 4,
-                },
-            );
+            await fs.writeJSON(filePath, DEFAULT_CONFIG, {
+                spaces: 4,
+            });
 
             Config.logger.warn(`config file ${pathToken} has been created successfully.`);
         }
