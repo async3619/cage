@@ -86,7 +86,7 @@ export class DiscordNotifier extends BaseNotifier {
         if (unfollowerLogs.length > 0) {
             const field = this.generateEmbedField(
                 unfollowerLogs,
-                Logger.format("❌ {} {}", followerLogs.length, pluralize("unfollower", logs.length)),
+                Logger.format("❌ {} {}", unfollowerLogs.length, pluralize("unfollower", logs.length)),
             );
 
             newFields.push(field);
