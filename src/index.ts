@@ -9,8 +9,8 @@ program
     .name("cage")
     .description("(almost) realtime unfollower detection for any social services 🐦⛓️ 🔒")
     .option("-c, --config <path>", "path to the configuration file", "./config.json")
-    .option("--verbose", "enable verbose level logging")
-    .version(version, "-v, --version")
+    .option("-v, --verbose", "enable verbose level logging")
+    .version(version)
     .parse(process.argv);
 
 const { config, verbose } = program.opts<{ config: string; verbose: boolean }>();
