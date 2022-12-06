@@ -49,6 +49,7 @@ export class UserLogRepository extends BaseRepository<UserLog> {
             .select("type")
             .addSelect("userId")
             .addSelect("MAX(createdAt)", "createdAt")
+            .where("type IN (:...types)", { types: [UserLogType.Follow, UserLogType.Unfollow] })
             .groupBy("userId")
             .getRawMany<{ type: UserLog["type"]; userId: string; createdAt: string }>();
 

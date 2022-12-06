@@ -14,6 +14,8 @@ import { User } from "@repositories/models/user";
 export enum UserLogType {
     Follow = "follow",
     Unfollow = "unfollow",
+    RenameDisplayName = "rename-display-name",
+    RenameUserId = "rename-user-id",
 }
 
 @Entity({ name: "follower-logs" })

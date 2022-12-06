@@ -17,6 +17,7 @@ import { measureTime } from "@utils/measureTime";
 import { sleep } from "@utils/sleep";
 import { Logger } from "@utils/logger";
 import { Loggable } from "@utils/types";
+import { getDiff } from "@utils/getDiff";
 
 export class App extends Loggable {
     private readonly followerDataSource: DataSource;
@@ -147,8 +148,13 @@ export class App extends Loggable {
 
         const followingMap = await this.userLogRepository.getFollowStatusMap();
         const oldUsers = await this.userRepository.find();
+
         const newUsers = await this.userRepository.createFromData(allUserData, startedDate);
         const newUserMap = mapBy(newUsers, "id");
+
+        // find user renaming their displayName or userId
+        const displayNameRenamedUsers = getDiff(newUsers, oldUsers, "uniqueId", "displayName");
+        const userIdRenamedUsers = getDiff(newUsers, oldUsers, "uniqueId", "userId");
 
         // find users who are not followed yet.
         const newFollowers = newUsers.filter(p => !followingMap[p.id]);
@@ -157,6 +163,8 @@ export class App extends Loggable {
         const newLogs = await this.userLogRepository.batchWriteLogs([
             [newFollowers, UserLogType.Follow],
             [unfollowers, UserLogType.Unfollow],
+            [displayNameRenamedUsers, UserLogType.RenameDisplayName],
+            [userIdRenamedUsers, UserLogType.RenameUserId],
         ]);
 
         this.logger.info(`all {} {} saved`, [newLogs.length, pluralize("log", newLogs.length)]);

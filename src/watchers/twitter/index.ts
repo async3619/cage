@@ -19,6 +19,7 @@ export class TwitterWatcher extends BaseWatcher<"Twitter"> {
     }
     public async doWatch() {
         const allFollowers = await this.helper.getFollowers();
+        console.log(allFollowers);
 
         this.logger.verbose("Successfully crawled {} {}", [
             allFollowers.length,
