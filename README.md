@@ -47,9 +47,13 @@ Options:
   -h, --help           display help for command
 ```
 
-## Supported Services
+## Watchers and Notifiers
 
 ### Watchers
+
+`Watchers` are independent feature that has the ability to watch to check users who follow your account per service.
+
+Here is supported watchers (TBD for ❌ services):
 
 | Service   |      Support?       |
 | --------- | :-----------------: |
@@ -65,6 +69,10 @@ Options:
 
 ### Notifiers
 
+When we detect unfollowers, new followers, or any other events, Cage will notify you via `Notifiers`.
+
+Here is supported notifiers (TBD for ❌ services):
+
 | Service         | Support? |
 | --------------- | :------: |
 | Discord WebHook |    ✅    |
@@ -73,7 +81,7 @@ Options:
 
 this application reads configuration file from `./cage.config.json` by default.
 
-You can use json schema file `config.schema.json` on this repository. here is example configuration file content:
+you can use json schema file `config.schema.json` on this repository. here is example configuration file content:
 
 ```json
 {
