@@ -53,7 +53,7 @@ Options:
 
 `Watchers` are independent feature that has the ability to watch to check users who follow your account per service.
 
-Here is supported watchers (TBD for ❌ services):
+#### Supported Watchers
 
 | Service   |      Support?       |
 | --------- | :-----------------: |
@@ -71,11 +71,15 @@ Here is supported watchers (TBD for ❌ services):
 
 When we detect unfollowers, new followers, or any other events, Cage will notify you via `Notifiers`.
 
-Here is supported notifiers (TBD for ❌ services):
+#### Supported Notifiers
 
 | Service         | Support? |
 | --------------- | :------: |
 | Discord WebHook |    ✅    |
+| Slack WebHook   |    ❌    |
+| Telegram Bot    |    ❌    |
+| Email           |    ❌    |
+| SMS             |    ❌    |
 
 ## Configuration
 
