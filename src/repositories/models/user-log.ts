@@ -19,7 +19,7 @@ export enum UserLogType {
     RenameUserId = "rename-user-id",
 }
 
-@Entity({ name: "follower-logs" })
+@Entity({ name: "user-logs" })
 export class UserLog extends BaseEntity {
     @PrimaryGeneratedColumn()
     public id!: number;
