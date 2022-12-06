@@ -35,6 +35,16 @@ Cage is a cli application for detecting unfollowers on any social services.
 $ npm install -g cage-cli
 
 $ cage --help
+
+Usage: cage [options]
+
+(almost) realtime unfollower detection for any social services 🐦⛓️ 🔒
+
+Options:
+  -c, --config <path>  path to the configuration file (default: "./config.json")
+  -v, --verbose        enable verbose level logging
+  -V, --version        output the version number
+  -h, --help           display help for command
 ```
 
 ## Supported Services
