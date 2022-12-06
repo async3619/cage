@@ -1,5 +1,6 @@
 import pluralize from "pluralize";
 
+import { User } from "@repositories/models/user";
 import { UserLog, UserLogType } from "@repositories/models/user-log";
 
 import { BaseNotifier } from "@notifiers/base";
@@ -92,6 +93,18 @@ export class DiscordNotifier extends BaseNotifier {
             newFields.push(field);
         }
 
+        const renameLogs = logs.filter(
+            l => l.type === UserLogType.RenameUserId || l.type === UserLogType.RenameDisplayName,
+        );
+        if (renameLogs.length > 0) {
+            const field = this.generateEmbedField(
+                renameLogs,
+                Logger.format("✏️ {} {}", renameLogs.length, pluralize("rename", logs.length)),
+            );
+
+            newFields.push(field);
+        }
+
         data.embeds[0].fields.push(...newFields);
 
         await this.fetcher.fetch({
@@ -105,9 +118,19 @@ export class DiscordNotifier extends BaseNotifier {
         return {
             name: title,
             value: logs
-                .map(l => l.user)
+                .map<[User, UserLog]>(l => [l.user, l])
                 .slice(0, 10)
-                .map(user => {
+                .map(([user, log]) => {
+                    if (log.type === UserLogType.RenameUserId || log.type === UserLogType.RenameDisplayName) {
+                        return Logger.format(
+                            "{} (@{}) → {}{}",
+                            log.oldDisplayName,
+                            log.oldUserId,
+                            log.type === UserLogType.RenameDisplayName ? "" : "@",
+                            log.type === UserLogType.RenameUserId ? user.userId : user.displayName,
+                        );
+                    }
+
                     return Logger.format(
                         "[{} (@{})](https://twitter.com/{})",
                         user.displayName,
