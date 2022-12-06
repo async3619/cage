@@ -76,7 +76,7 @@ export class DiscordNotifier extends BaseNotifier {
         if (followerLogs.length > 0) {
             const field = this.generateEmbedField(
                 followerLogs,
-                Logger.format("🎉 {} new {}", logs.length, pluralize("follower", logs.length)),
+                Logger.format("🎉 {} new {}", followerLogs.length, pluralize("follower", logs.length)),
             );
 
             newFields.push(field);
@@ -86,7 +86,7 @@ export class DiscordNotifier extends BaseNotifier {
         if (unfollowerLogs.length > 0) {
             const field = this.generateEmbedField(
                 unfollowerLogs,
-                Logger.format("❌ {} {}", logs.length, pluralize("unfollower", logs.length)),
+                Logger.format("❌ {} {}", followerLogs.length, pluralize("unfollower", logs.length)),
             );
 
             newFields.push(field);
