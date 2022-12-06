@@ -67,6 +67,7 @@
         "typescript": "^4.9.3"
     },
     "dependencies": {
+        "@twitter-api-v2/plugin-rate-limit": "^1.1.0",
         "ajv": "^8.11.2",
         "argon2": "^0.30.2",
         "better-ajv-errors": "^1.2.0",
@@ -86,6 +87,7 @@
         "set-cookie-parser": "^2.5.1",
         "sqlite3": "^5.1.2",
         "strip-ansi": "^6.0.1",
+        "twitter-api-v2": "^1.12.9",
         "typeorm": "^0.3.10"
     }
 }

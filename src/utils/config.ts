@@ -5,7 +5,7 @@ import chalk from "chalk";
 import Ajv from "ajv";
 import betterAjvErrors from "better-ajv-errors";
 
-import { AVAILABLE_WATCHERS } from "@watchers";
+import { createWatcher, WatcherMap, WatcherPair, WatcherTypes } from "@watchers";
 import { AVAILABLE_NOTIFIERS } from "@notifiers";
 
 import { ConfigData } from "@utils/config.type";
@@ -62,17 +62,35 @@ export class Config {
                     throw new Error(`config file is invalid.\n${output}`);
                 }
 
-                return new Config(data);
+                const watcherTypes = Object.keys(data.watchers) as WatcherTypes[];
+                const watchers: WatcherPair[] = [];
+                const watcherMap: WatcherMap = {} as WatcherMap;
+                for (const type of watcherTypes) {
+                    const configs = data.watchers[type];
+                    if (!configs) {
+                        throw new Error(`watcher \`${type}\` is not configured.`);
+                    }
+
+                    const watcher = createWatcher(configs);
+                    watchers.push([type, watcher]);
+                    watcherMap[type] = watcher as any;
+                }
+
+                return new Config(data, watcherTypes, watchers, watcherMap);
             },
         });
     }
 
-    public get watchers() {
-        const names = Object.keys(this.rawData.watchers);
-        return AVAILABLE_WATCHERS.filter(w => names.includes(w.getName().toLowerCase()));
+    get watcherTypes(): ReadonlyArray<WatcherTypes> {
+        return [...this._watcherTypes];
     }
-    public get watcherOptions() {
-        return _.cloneDeep(this.rawData.watchers);
+
+    get watchers(): ReadonlyArray<WatcherPair> {
+        return [...this._watchers];
+    }
+
+    get watcherMap(): WatcherMap {
+        return { ...this._watcherMap };
     }
 
     public get notifiers() {
@@ -91,5 +109,10 @@ export class Config {
         return this.rawData.watchInterval;
     }
 
-    private constructor(private readonly rawData: ConfigData) {}
+    private constructor(
+        private readonly rawData: ConfigData,
+        private readonly _watcherTypes: ReadonlyArray<WatcherTypes>,
+        private readonly _watchers: ReadonlyArray<WatcherPair>,
+        private readonly _watcherMap: WatcherMap,
+    ) {}
 }

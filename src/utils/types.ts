@@ -1,8 +1,11 @@
 import { Logger } from "@utils/logger";
 
+export type CombineFn<T extends (...args: any[]) => any> = (...args: Parameters<T>) => ReturnType<T>;
 export type TypeMap<T extends { type: string }> = {
     [TKey in T["type"]]: TKey extends T["type"] ? Extract<T, { type: TKey }> : never;
 };
+
+export type Values<T> = T[keyof T];
 
 export type Fn<TArgs = void, TReturn = void> = TArgs extends unknown[]
     ? (...arg: TArgs) => TReturn
@@ -14,17 +17,17 @@ export type Work<T> = Fn<void, Promise<T> | T>;
 export type Nullable<T> = T | null | undefined;
 
 export interface Serializable {
-    serialize(): Record<string, any>;
+    serialize(): Record<string, unknown>;
 }
 
 export interface Hydratable {
     hydrate(data: Record<string, any>): void;
 }
 
-export abstract class Loggable {
+export abstract class Loggable<TName extends string = string> {
     protected readonly logger: Logger;
 
-    protected constructor(protected readonly name: string) {
+    protected constructor(public readonly name: TName) {
         this.logger = new Logger(name);
     }
 

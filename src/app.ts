@@ -10,8 +10,6 @@ import { UserLogRepository } from "@repositories/user-log";
 import { User, UserData } from "@repositories/models/user";
 import { UserLog, UserLogType } from "@root/repositories/models/user-log";
 
-import { AVAILABLE_WATCHERS } from "@watchers";
-
 import { Config } from "@utils/config";
 import { throttle } from "@utils/throttle";
 import { mapBy } from "@utils/mapBy";
@@ -66,14 +64,13 @@ export class App extends Loggable {
             work: () => this.followerDataSource.initialize(),
         });
 
-        for (const watcher of watchers) {
-            const options = this.config.watcherOptions[watcher.getName()];
+        for (const [, watcher] of watchers) {
             await watcher.loadState();
 
             await this.logger.work({
                 level: "info",
                 message: `initialize \`${chalk.green(watcher.getName())}\` watcher`,
-                work: () => watcher.initialize(options),
+                work: () => watcher.initialize(),
             });
 
             await watcher.saveState();
@@ -94,7 +91,7 @@ export class App extends Loggable {
             });
         }
 
-        const watcherNames = watchers.map(p => `\`${chalk.green(p.getName())}\``).join(", ");
+        const watcherNames = watchers.map(([, p]) => `\`${chalk.green(p.getName())}\``).join(", ");
         this.logger.info("start to watch through {} {}.", [watcherNames, pluralize("watcher", watchers.length)]);
 
         const interval = this.config.watchInterval;
@@ -140,7 +137,7 @@ export class App extends Loggable {
 
         const startedDate = new Date();
         const allUserData: UserData[] = [];
-        for (const watcher of AVAILABLE_WATCHERS) {
+        for (const [, watcher] of this.config.watchers) {
             const userData = await watcher.doWatch();
 
             allUserData.push(...userData);

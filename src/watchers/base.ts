@@ -4,16 +4,22 @@ import * as fs from "fs-extra";
 
 import { UserData } from "@repositories/models/user";
 
+import { WatcherTypes } from "@watchers";
+
 import { Loggable } from "@utils/types";
 
-export abstract class BaseWatcher extends Loggable {
+export interface BaseWatcherOptions<TType extends WatcherTypes> {
+    type: TType;
+}
+
+export abstract class BaseWatcher<TType extends string> extends Loggable<TType> {
     private readonly stateFileDirectory = path.join(process.cwd(), "./dump/");
 
-    protected constructor(name: string) {
+    protected constructor(name: TType) {
         super(name);
     }
 
-    public abstract initialize(options: Record<string, any>): Promise<void>;
+    public abstract initialize(): Promise<void>;
 
     public abstract doWatch(): Promise<UserData[]>;
 

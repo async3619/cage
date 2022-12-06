@@ -1105,6 +1105,11 @@
   resolved "https://registry.yarnpkg.com/@tsconfig/node16/-/node16-1.0.3.tgz#472eaab5f15c1ffdd7f8628bd4c4f753995ec79e"
   integrity sha512-yOlFc+7UtL/89t2ZhjPvvB/DeAr3r+Dq58IgzsFkOAvVC6NMJXmCGjbptdXdR9qsX7pKcTL+s87FtYREi2dEEQ==
 
+"@twitter-api-v2/plugin-rate-limit@^1.1.0":
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/@twitter-api-v2/plugin-rate-limit/-/plugin-rate-limit-1.1.0.tgz#a80bbc86f4629575c13ab2f688dafe8b7eb05058"
+  integrity sha512-5nUk0w0s1yzzMe+NLN5BlKzwgl9OHkF1Makb5Xje1ntCO1H1fGq0qli80WRvcrpcwKZcSckRkXd4HEksh2LZ6g==
+
 "@types/babel__core@^7.1.14":
   version "7.1.19"
   resolved "https://registry.yarnpkg.com/@types/babel__core/-/babel__core-7.1.19.tgz#7b497495b7d1b4812bdb9d02804d0576f43ee460"
@@ -6101,6 +6106,11 @@ tsutils@^3.21.0:
   integrity sha512-mHKK3iUXL+3UF6xL5k0PEhKRUBKPBCv/+RkEOpjRWxxx27KKRBmmA60A9pgOUvMi8GKhRMPEmjBRPzs2W7O1OA==
   dependencies:
     tslib "^1.8.1"
+
+twitter-api-v2@^1.12.9:
+  version "1.12.9"
+  resolved "https://registry.yarnpkg.com/twitter-api-v2/-/twitter-api-v2-1.12.9.tgz#447fc4efb693bbb7983a6dcec2de5da7e0f27648"
+  integrity sha512-nmKwcUiXgoEfcOtAH/hYojy0oSxbouWvvNsHVphiHSW9x9aus2Jdg9/NRB2Gzyq5G6xl+EkjUlEWwBQjp1FOfg==
 
 type-check@^0.4.0, type-check@~0.4.0:
   version "0.4.0"
