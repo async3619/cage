@@ -148,6 +148,7 @@ export class App extends Loggable {
 
         const followingMap = await this.userLogRepository.getFollowStatusMap();
         const oldUsers = await this.userRepository.find();
+        const oldUsersMap = mapBy(oldUsers, "id");
 
         const newUsers = await this.userRepository.createFromData(allUserData, startedDate);
         const newUserMap = mapBy(newUsers, "id");
@@ -160,12 +161,40 @@ export class App extends Loggable {
         const newFollowers = newUsers.filter(p => !followingMap[p.id]);
         const unfollowers = oldUsers.filter(p => !newUserMap[p.id] && followingMap[p.id]);
 
-        const newLogs = await this.userLogRepository.batchWriteLogs([
-            [newFollowers, UserLogType.Follow],
-            [unfollowers, UserLogType.Unfollow],
-            [displayNameRenamedUsers, UserLogType.RenameDisplayName],
-            [userIdRenamedUsers, UserLogType.RenameUserId],
-        ]);
+        const renameLogs: UserLog[] = [];
+        if (displayNameRenamedUsers.length || userIdRenamedUsers.length) {
+            const displayName = displayNameRenamedUsers.map(p => {
+                const oldUser = oldUsersMap[p.id];
+                const userLog = this.userLogRepository.create();
+                userLog.type = UserLogType.RenameDisplayName;
+                userLog.user = p;
+                userLog.oldDisplayName = oldUser?.displayName;
+                userLog.oldUserId = oldUser?.userId;
+
+                return userLog;
+            });
+
+            const userId = userIdRenamedUsers.map(p => {
+                const oldUser = oldUsersMap[p.id];
+                const userLog = this.userLogRepository.create();
+                userLog.type = UserLogType.RenameUserId;
+                userLog.user = p;
+                userLog.oldDisplayName = oldUser?.displayName;
+                userLog.oldUserId = oldUser?.userId;
+
+                return userLog;
+            });
+
+            renameLogs.push(...displayName, ...userId);
+        }
+
+        const newLogs = await this.userLogRepository.batchWriteLogs(
+            [
+                [newFollowers, UserLogType.Follow],
+                [unfollowers, UserLogType.Unfollow],
+            ],
+            renameLogs,
+        );
 
         this.logger.info(`all {} {} saved`, [newLogs.length, pluralize("log", newLogs.length)]);
 

@@ -30,7 +30,7 @@ export class UserLogRepository extends BaseRepository<UserLog> {
 
         return this.saveItems(userLogs);
     }
-    public async batchWriteLogs(items: [User[], UserLog["type"]][]) {
+    public async batchWriteLogs(items: Array<[User[], UserLog["type"]]>, rawLogs?: UserLog[]) {
         const userLogs = items.flatMap(([users, type]) =>
             users.map(user => {
                 const userLog = this.create();
@@ -40,6 +40,10 @@ export class UserLogRepository extends BaseRepository<UserLog> {
                 return userLog;
             }),
         );
+
+        if (rawLogs) {
+            userLogs.push(...rawLogs);
+        }
 
         return this.saveItems(userLogs);
     }

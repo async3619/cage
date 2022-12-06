@@ -10,6 +10,7 @@ import {
 } from "typeorm";
 
 import { User } from "@repositories/models/user";
+import { Nullable } from "@utils/types";
 
 export enum UserLogType {
     Follow = "follow",
@@ -25,6 +26,12 @@ export class UserLog extends BaseEntity {
 
     @Column({ type: "varchar", length: 255 })
     public type!: UserLogType;
+
+    @Column({ type: "varchar", length: 255, nullable: true })
+    public oldUserId!: Nullable<string>;
+
+    @Column({ type: "varchar", length: 255, nullable: true })
+    public oldDisplayName!: Nullable<string>;
 
     @CreateDateColumn()
     public createdAt!: Date;
