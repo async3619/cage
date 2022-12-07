@@ -75,16 +75,18 @@ jobs:
                 username: ${{ secrets.DOCKERHUB_USERNAME }}
                 password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+            - name: Set Environment Variable for Tagging
+              run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
             - name: Build, tag, and push image to Docker Hub
               env:
-                IMAGE_TAG: ${{ github.sha }}
                 DOCKER_BUILDKIT: 1
                 GITHUB_OWNER: ${{ github.repository_owner }}
                 GITHUB_REPO: ${{ github.event.repository.name }}
               run: |
-                docker build -t $GITHUB_OWNER/$GITHUB_REPO:$IMAGE_TAG .
+                docker build -t $GITHUB_OWNER/$GITHUB_REPO:$RELEASE_VERSION .
                 docker build -t $GITHUB_OWNER/$GITHUB_REPO:latest .
-                docker push $GITHUB_OWNER/$GITHUB_REPO:$IMAGE_TAG
+                docker push $GITHUB_OWNER/$GITHUB_REPO:$RELEASE_VERSION
                 docker push $GITHUB_OWNER/$GITHUB_REPO:latest
 
             - uses: sarisia/actions-status-discord@v1
