@@ -96,7 +96,6 @@
         "set-cookie-parser": "^2.5.1",
         "sqlite3": "^5.1.2",
         "strip-ansi": "^6.0.1",
-        "ts-essentials": "^9.3.0",
         "twitter-api-v2": "^1.12.9",
         "typeorm": "^0.3.10",
         "update-notifier": "^5.1.0"
