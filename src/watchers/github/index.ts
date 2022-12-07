@@ -1,11 +1,10 @@
 import { Client, createClient } from "@urql/core";
 
-import { UserData } from "@repositories/models/user";
-
-import { GitHubWatcherOptions } from "@watchers/github/types";
-import { BaseWatcher } from "@watchers/base";
-import { FollowersQuery, FollowersQueryVariables, MeQuery } from "@root/queries.data";
+import { BaseWatcher, PartialUserData } from "@watchers/base";
 import { FollowersDocument, MeDocument } from "@watchers/github/queries";
+import { GitHubWatcherOptions } from "@watchers/github/types";
+
+import { FollowersQuery, FollowersQueryVariables, MeQuery } from "@root/queries.data";
 import { Nullable } from "@utils/types";
 
 export class GitHubWatcher extends BaseWatcher<"GitHub"> {
@@ -30,24 +29,6 @@ export class GitHubWatcher extends BaseWatcher<"GitHub"> {
     public async initialize() {
         return;
     }
-    public async doWatch(): Promise<UserData[]> {
-        const result: UserData[] = [];
-        const currentUserId = await this.getCurrentUserId();
-
-        let cursor: string | undefined = undefined;
-        while (true) {
-            const [followers, nextCursor] = await this.getFollowers(currentUserId, cursor);
-            result.push(...followers);
-
-            if (!nextCursor) {
-                break;
-            }
-
-            cursor = nextCursor;
-        }
-
-        return result;
-    }
 
     private async getCurrentUserId() {
         const { data, error } = await this.client.query<MeQuery>(MeDocument, {}).toPromise();
@@ -61,7 +42,29 @@ export class GitHubWatcher extends BaseWatcher<"GitHub"> {
 
         return data.viewer.login;
     }
-    private async getFollowers(targetUserId: string, cursor?: string): Promise<[UserData[], Nullable<string>]> {
+    public async getFollowers() {
+        const result: PartialUserData[] = [];
+        const currentUserId = await this.getCurrentUserId();
+
+        let cursor: string | undefined = undefined;
+        while (true) {
+            const [followers, nextCursor] = await this.getFollowersFromUserId(currentUserId, cursor);
+            result.push(...followers);
+
+            if (!nextCursor) {
+                break;
+            }
+
+            cursor = nextCursor;
+        }
+
+        return result;
+    }
+
+    private async getFollowersFromUserId(
+        targetUserId: string,
+        cursor?: string,
+    ): Promise<[PartialUserData[], Nullable<string>]> {
         const { data, error } = await this.client
             .query<FollowersQuery, FollowersQueryVariables>(FollowersDocument, {
                 username: targetUserId,
@@ -93,13 +96,12 @@ export class GitHubWatcher extends BaseWatcher<"GitHub"> {
                     }
 
                     return {
-                        from: this.getName(),
                         uniqueId: edge.node.id,
                         userId: edge.node.login,
                         displayName: edge.node.name || edge.node.login,
                     };
                 })
-                .filter<UserData>((item: UserData | null): item is UserData => Boolean(item)),
+                .filter<PartialUserData>((item: PartialUserData | null): item is PartialUserData => Boolean(item)),
             data.user.followers.pageInfo.endCursor,
         ];
     }

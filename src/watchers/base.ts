@@ -12,6 +12,8 @@ export interface BaseWatcherOptions<TType extends WatcherTypes> {
     type: TType;
 }
 
+export type PartialUserData = Omit<UserData, "from">;
+
 export abstract class BaseWatcher<TType extends string> extends Loggable<TType> {
     private readonly stateFileDirectory = path.join(process.cwd(), "./dump/");
 
@@ -21,7 +23,16 @@ export abstract class BaseWatcher<TType extends string> extends Loggable<TType> 
 
     public abstract initialize(): Promise<void>;
 
-    public abstract doWatch(): Promise<UserData[]>;
+    public async doWatch(): Promise<UserData[]> {
+        const followers = await this.getFollowers();
+
+        return followers.map(user => ({
+            ...user,
+            from: this.getName().toLowerCase(),
+        }));
+    }
+
+    protected abstract getFollowers(): Promise<PartialUserData[]>;
 
     public async saveState() {
         await this.logger.work({

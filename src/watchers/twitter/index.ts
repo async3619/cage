@@ -4,7 +4,6 @@ import pluralize from "pluralize";
 import { BaseWatcher } from "@watchers/base";
 import { TwitterWatcherOptions } from "@watchers/twitter/types";
 
-import { UserData } from "@repositories/models/user";
 import { TwitterHelper } from "@watchers/twitter/helper";
 
 export class TwitterWatcher extends BaseWatcher<"Twitter"> {
@@ -17,7 +16,8 @@ export class TwitterWatcher extends BaseWatcher<"Twitter"> {
     public async initialize(): Promise<void> {
         await this.helper.initialize();
     }
-    public async doWatch() {
+
+    public async getFollowers() {
         const allFollowers = await this.helper.getFollowers();
 
         this.logger.verbose("Successfully crawled {} {}", [
@@ -25,10 +25,7 @@ export class TwitterWatcher extends BaseWatcher<"Twitter"> {
             pluralize("follower", allFollowers.length),
         ]);
 
-        return allFollowers.map<UserData>(user => ({
-            ...user,
-            from: this.getName().toLowerCase(),
-        }));
+        return allFollowers;
     }
 
     protected getHashData(): any {
