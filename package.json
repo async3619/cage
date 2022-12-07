@@ -1,7 +1,7 @@
 {
     "name": "cage-cli",
     "description": "realtime unfollower detection for any social services",
-    "version": "1.0.0-dev.2",
+    "version": "1.0.0-dev.3",
     "license": "MIT",
     "publishConfig": {
         "access": "public"
