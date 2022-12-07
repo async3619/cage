@@ -120,7 +120,12 @@ export class App extends Loggable {
             try {
                 const [, elapsedTime] = await throttle(
                     async () => {
-                        const { elapsedTime: time } = await measureTime(async () => this.onCycle());
+                        const result = await measureTime(async () => this.onCycle());
+                        if ("exception" in result) {
+                            throw result.exception;
+                        }
+
+                        const { elapsedTime: time } = result;
 
                         this.logger.info(`last task finished in ${chalk.green("{}")}.`, [
                             prettyMilliseconds(time, { verbose: true }),
@@ -146,7 +151,7 @@ export class App extends Loggable {
                     throw e;
                 }
 
-                this.logger.error("An error occurred while processing scheduled task: {}", [e.message]);
+                this.logger.error("an error occurred while processing scheduled task: {}", [e.message]);
             }
         }
     }
@@ -159,9 +164,22 @@ export class App extends Loggable {
         const startedDate = new Date();
         const allUserData: UserData[] = [];
         for (const [, watcher] of this.config.watchers) {
-            const userData = await watcher.doWatch();
+            try {
+                const userData = await watcher.doWatch();
 
-            allUserData.push(...userData);
+                allUserData.push(...userData);
+            } catch (e) {
+                if (!(e instanceof Error)) {
+                    throw e;
+                }
+
+                this.logger.error("an error occurred while watching through `{green}`: {}", [
+                    watcher.getName(),
+                    e.message,
+                ]);
+
+                process.exit(-1);
+            }
         }
 
         this.logger.info(`all {} {} collected.`, [allUserData.length, pluralize("follower", allUserData.length)]);

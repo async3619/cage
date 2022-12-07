@@ -1,4 +1,4 @@
-import { Client, createClient } from "@urql/core";
+import { Client, CombinedError, createClient } from "@urql/core";
 
 import { BaseWatcher, PartialUserData } from "@watchers/base";
 import { FollowersDocument, MeDocument } from "@watchers/github/queries";
@@ -30,22 +30,36 @@ export class GitHubWatcher extends BaseWatcher<"GitHub"> {
         return;
     }
     public async getFollowers() {
-        const result: PartialUserData[] = [];
-        const currentUserId = await this.getCurrentUserId();
+        try {
+            const result: PartialUserData[] = [];
+            const currentUserId = await this.getCurrentUserId();
 
-        let cursor: string | undefined = undefined;
-        while (true) {
-            const [followers, nextCursor] = await this.getFollowersFromUserId(currentUserId, cursor);
-            result.push(...followers);
+            let cursor: string | undefined = undefined;
+            while (true) {
+                const [followers, nextCursor] = await this.getFollowersFromUserId(currentUserId, cursor);
+                result.push(...followers);
 
-            if (!nextCursor) {
-                break;
+                if (!nextCursor) {
+                    break;
+                }
+
+                cursor = nextCursor;
             }
 
-            cursor = nextCursor;
+            return result;
+        } catch (e) {
+            if (e instanceof CombinedError) {
+                if (e.networkError) {
+                    throw e.networkError;
+                } else if (e.graphQLErrors && e.graphQLErrors.length > 0) {
+                    throw e.graphQLErrors[0];
+                }
+            } else {
+                throw e;
+            }
         }
 
-        return result;
+        return [];
     }
 
     private async getCurrentUserId() {
