@@ -49,6 +49,10 @@ jobs:
               run: |
                   yarn
 
+            - name: Generate codes for GraphQL
+              run: |
+                yarn codegen
+
             - name: Lint
               run: |
                   yarn lint
