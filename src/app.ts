@@ -1,4 +1,5 @@
 import * as path from "path";
+import * as fs from "fs-extra";
 import { DataSource } from "typeorm";
 import chalk from "chalk";
 import prettyMilliseconds from "pretty-ms";
@@ -23,17 +24,22 @@ export class App extends Loggable {
     private readonly followerDataSource: DataSource;
     private readonly userRepository: UserRepository;
     private readonly userLogRepository: UserLogRepository;
+    private readonly databasePath = path.join(process.cwd(), "./data.sqlite");
 
     private cleaningUp = false;
     private config: Config | null = null;
 
-    public constructor(private readonly configFilePath: string, private readonly verbose: boolean) {
+    public constructor(
+        private readonly configFilePath: string,
+        private readonly verbose: boolean,
+        private readonly dropDatabase: boolean,
+    ) {
         super("App");
         Logger.verbose = verbose;
 
         this.followerDataSource = new DataSource({
             type: "sqlite",
-            database: path.join(process.cwd(), "./data.sqlite"),
+            database: this.databasePath,
             entities: [User, UserLog],
             synchronize: true,
         });
@@ -42,7 +48,23 @@ export class App extends Loggable {
         this.userLogRepository = new UserLogRepository(this.followerDataSource.getRepository(UserLog));
     }
 
+    private async doDropDatabase() {
+        if (!fs.existsSync(this.databasePath)) {
+            return;
+        }
+
+        await fs.unlink(this.databasePath);
+    }
+
     public async run() {
+        if (this.dropDatabase) {
+            await this.logger.work({
+                message: "dropping database",
+                work: () => this.doDropDatabase(),
+                level: "info",
+            });
+        }
+
         this.config = await Config.create(this.configFilePath);
         if (!this.config) {
             process.exit(-1);

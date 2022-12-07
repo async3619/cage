@@ -42,6 +42,7 @@ Usage: cage [options]
 
 Options:
   -c, --config <path>  path to the configuration file (default: "./config.json")
+  -d, --drop-database  delete the old database file
   -v, --verbose        enable verbose level logging
   -V, --version        output the version number
   -h, --help           display help for command
@@ -74,16 +75,16 @@ services:
 #### Supported Watchers
 
 | Service   | Support? |
-| --------- | :------: |
-| Twitter   |    ✅    |
-| GitHub    |    ✅    |
-| Instagram |    ❌    |
-| TikTok    |    ❌    |
-| YouTube   |    ❌    |
-| Twitch    |    ❌    |
-| Facebook  |    ❌    |
-| Reddit    |    ❌    |
-| Discord   |    ❌    |
+|-----------|:--------:|
+| Twitter   |    ✅     |
+| GitHub    |    ✅     |
+| Instagram |    ❌     |
+| TikTok    |    ❌     |
+| YouTube   |    ❌     |
+| Twitch    |    ❌     |
+| Facebook  |    ❌     |
+| Reddit    |    ❌     |
+| Discord   |    ❌     |
 
 ### Notifiers
 
@@ -92,12 +93,12 @@ When we detect unfollowers, new followers, or any other events, Cage will notify
 #### Supported Notifiers
 
 | Service         | Support? |
-| --------------- | :------: |
-| Discord WebHook |    ✅    |
-| Slack WebHook   |    ❌    |
-| Telegram Bot    |    ❌    |
-| Email           |    ❌    |
-| SMS             |    ❌    |
+|-----------------|:--------:|
+| Discord WebHook |    ✅     |
+| Slack WebHook   |    ❌     |
+| Telegram Bot    |    ❌     |
+| Email           |    ❌     |
+| SMS             |    ❌     |
 
 ## Configuration
 
