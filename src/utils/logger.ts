@@ -75,32 +75,33 @@ export class Logger implements Record<LogLevel, LoggerFn> {
             return content;
         }
 
-        const formattedArgs = args
-            .map(arg => {
-                if (typeof arg === "object") {
-                    return JSON.stringify(arg);
-                }
+        const replacements = args.map(arg => {
+            if (typeof arg === "object") {
+                return JSON.stringify(arg);
+            }
 
-                return `${arg}`;
-            })
-            .map(arg => {
-                const result = /(\{(.*?)\})/.exec(content);
-                if (result && result[2]) {
-                    const tokens = result[2].split(":");
-                    let content = arg;
-                    for (const token of tokens) {
-                        if (CHALK_FORMAT_NAMES.includes(token as any)) {
-                            content = chalk[token](content);
-                        }
+            return `${arg}`;
+        });
+
+        const matches = content.matchAll(/(\{(.*?)\})/g);
+        if (!matches) {
+            return content;
+        }
+
+        for (const [, token, style] of matches) {
+            let item = replacements.shift() || "{}";
+            if (style) {
+                style.split(",").forEach(style => {
+                    if (CHALK_FORMAT_NAMES.includes(style as any)) {
+                        item = chalk[style](item);
                     }
+                });
+            }
 
-                    return content;
-                } else {
-                    return arg;
-                }
-            });
+            content = content.replace(token, item);
+        }
 
-        return formattedArgs.reduce((content, arg) => content.replace(/\{.*?\}/, arg), content);
+        return content;
     }
 
     private static readonly buffer: string[] = [];
