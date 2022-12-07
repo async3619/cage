@@ -10,6 +10,9 @@
 </h1>
 
 <div align="center">
+    <a href="https://registry.hub.docker.com/r/async3619/cage">
+        <img alt="Docker Image Version (latest by date)" src="https://img.shields.io/docker/v/async3619/cage?label=docker&style=flat-square">
+    </a>
     <a href="https://www.npmjs.com/package/cage-cli">
         <img alt="npm (tag)" src="https://img.shields.io/npm/v/cage-cli/dev?style=flat-square">
     </a>
