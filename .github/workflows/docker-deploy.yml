@@ -2,9 +2,6 @@ name: Docker Image Deploy
 
 on:
     push:
-        branches:
-            - main
-            - dev
         tags:
             - "*"
 
