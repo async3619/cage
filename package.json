@@ -48,6 +48,7 @@
         "@types/prompts": "^2.0.14",
         "@types/replace-ext": "^2.0.0",
         "@types/set-cookie-parser": "^2.4.2",
+        "@types/update-notifier": "^6.0.1",
         "@types/uuid": "^8.3.4",
         "@typescript-eslint/eslint-plugin": "^5.38.0",
         "@typescript-eslint/parser": "^5.38.0",
@@ -71,6 +72,7 @@
         "ajv": "^8.11.2",
         "argon2": "^0.30.2",
         "better-ajv-errors": "^1.2.0",
+        "boxen": "^5.1.2",
         "chalk": "^4.1.2",
         "commander": "^9.4.1",
         "conventional-changelog-conventionalcommits": "^5.0.0",
@@ -88,6 +90,7 @@
         "sqlite3": "^5.1.2",
         "strip-ansi": "^6.0.1",
         "twitter-api-v2": "^1.12.9",
-        "typeorm": "^0.3.10"
+        "typeorm": "^0.3.10",
+        "update-notifier": "^5.1.0"
     }
 }
