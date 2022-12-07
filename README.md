@@ -27,7 +27,7 @@
 
 ## Introduction
 
-Cage is a cli application for detecting unfollowers on any social services.
+Cage is a cli application for detecting unfollowers on any social services. this application will check all of your followers using each watcher and compare them to the previous check. if there is a difference, it will notify you of the changes.
 
 ## Usage
 
