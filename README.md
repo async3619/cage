@@ -118,7 +118,7 @@ you can use json schema file `config.schema.json` on this repository.
 
 specify watching interval in millisecond format. minimal value is `60000`.
 
-### watchers: Record<string, WatcherOptions> (required)
+### watchers: `Record<string, WatcherOptions>` (required)
 
 #### twitter
 
@@ -159,7 +159,7 @@ watcher configuration for GitHub service.
 }
 ```
 
-### notifiers: Record<string, NotifierOptions> (required)
+### notifiers: `Record<string, NotifierOptions>` (required)
 
 #### discord
 
