@@ -1,3 +1,4 @@
+import nodeFetch from "node-fetch";
 import { Client, CombinedError, createClient } from "@urql/core";
 
 import { BaseWatcher, PartialUserData } from "@watchers/base";
@@ -15,6 +16,7 @@ export class GitHubWatcher extends BaseWatcher<"GitHub"> {
 
         this.client = createClient({
             url: "https://api.github.com/graphql",
+            fetch: nodeFetch as unknown as typeof fetch,
             fetchOptions: () => {
                 return {
                     method: "POST",
