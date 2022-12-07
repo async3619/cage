@@ -7,6 +7,7 @@ import { BaseNotifier } from "@notifiers/base";
 
 import { Fetcher } from "@utils/fetcher";
 import { Logger } from "@utils/logger";
+import dayjs from "dayjs";
 
 export interface DiscordNotifierOptions {
     type: "discord";
@@ -66,7 +67,8 @@ export class DiscordNotifier extends BaseNotifier {
                     author: {
                         name: "Cage Report",
                     },
-                    timestamp: "2022-12-29T15:00:00.000Z",
+                    // use dayjs to generate timestamp with Z format
+                    timestamp: dayjs().format(),
                 },
             ],
             attachments: [],
