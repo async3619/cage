@@ -32,7 +32,7 @@ Cage is a cli application for detecting unfollowers on any social services. this
 ## Usage
 
 ```bash
-$ npm install -g cage-cli
+$ npm install -g cage-cli@dev
 
 $ cage --help
 
@@ -41,11 +41,12 @@ Usage: cage [options]
 (almost) realtime unfollower detection for any social services 🦜⛓️🔒
 
 Options:
-  -c, --config <path>  path to the configuration file (default: "./config.json")
-  -d, --drop-database  delete the old database file
-  -v, --verbose        enable verbose level logging
-  -V, --version        output the version number
-  -h, --help           display help for command
+  -c, --config <path>    path to the configuration file (default: "./config.json")
+  -d, --database <path>  path to the database file (default: "./data.sqlite")
+  -p, --drop-database    delete the old database file
+  -v, --verbose          enable verbose level logging
+  -V, --version          output the version number
+  -h, --help             display help for command
 ```
 
 or you can just deploy with `docker` if you want:
