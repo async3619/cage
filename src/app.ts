@@ -43,8 +43,6 @@ export class App extends Loggable {
     }
 
     public async run() {
-        this.logger.clear();
-
         this.config = await Config.create(this.configFilePath);
         if (!this.config) {
             process.exit(-1);
