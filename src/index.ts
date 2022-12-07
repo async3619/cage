@@ -7,6 +7,13 @@ import { Logger } from "@utils/logger";
 
 import packageJson from "../package.json";
 
+interface CLIOptions {
+    config: string;
+    verbose: boolean;
+    dropDatabase: boolean;
+    database: string;
+}
+
 (async () => {
     const program = new Command();
 
@@ -14,16 +21,13 @@ import packageJson from "../package.json";
         .name("cage")
         .description("(almost) realtime unfollower detection for any social services 🦜⛓️🔒")
         .option("-c, --config <path>", "path to the configuration file", "./config.json")
-        .option("-d, --drop-database", "delete the old database file")
+        .option("-d, --database <path>", "path to the database file", "./data.sqlite")
+        .option("-p, --drop-database", "delete the old database file")
         .option("-v, --verbose", "enable verbose level logging")
         .version(packageJson.version)
         .parse(process.argv);
 
-    const { config, verbose, dropDatabase } = program.opts<{
-        config: string;
-        verbose: boolean;
-        dropDatabase: boolean;
-    }>();
+    const { config, verbose, dropDatabase, database } = program.opts<CLIOptions>();
     const { latest, current } = await updateNotifier({
         pkg: packageJson,
         distTag: packageJson.version.includes("dev") ? "dev" : "latest",
@@ -49,5 +53,5 @@ import packageJson from "../package.json";
         );
     }
 
-    await new App(config, verbose, dropDatabase).run();
+    await new App(config, verbose, dropDatabase, database).run();
 })();

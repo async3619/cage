@@ -24,7 +24,6 @@ export class App extends Loggable {
     private readonly followerDataSource: DataSource;
     private readonly userRepository: UserRepository;
     private readonly userLogRepository: UserLogRepository;
-    private readonly databasePath = path.join(process.cwd(), "./data.sqlite");
 
     private cleaningUp = false;
     private config: Config | null = null;
@@ -33,9 +32,14 @@ export class App extends Loggable {
         private readonly configFilePath: string,
         private readonly verbose: boolean,
         private readonly dropDatabase: boolean,
+        private readonly databasePath: string,
     ) {
         super("App");
         Logger.verbose = verbose;
+
+        if (!path.isAbsolute(this.databasePath)) {
+            this.databasePath = path.join(process.cwd(), this.databasePath);
+        }
 
         this.followerDataSource = new DataSource({
             type: "sqlite",
