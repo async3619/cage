@@ -14,25 +14,25 @@
                     "types": [
                         {
                             "type": "feat",
-                            "section": "Features"
+                            "section": "Features ✨"
                         },
                         {
                             "type": "fix",
-                            "section": "Bug Fixes"
+                            "section": "Bug Fixes \uD83D\uDC1E"
                         },
                         {
                             "type": "chore",
-                            "section": "Internal",
+                            "section": "Internal \uD83E\uDDF0",
                             "hidden": true
                         },
                         {
                             "type": "refactor",
-                            "section": "Internal",
+                            "section": "Internal \uD83E\uDDF0",
                             "hidden": false
                         },
                         {
                             "type": "perf",
-                            "section": "Internal",
+                            "section": "Internal \uD83E\uDDF0",
                             "hidden": false
                         }
                     ]
