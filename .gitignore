@@ -8,3 +8,5 @@
 /dump
 /data.sqlite
 /config.json
+/src/queries.ts
+/src/queries.data.ts

@@ -1,6 +1,6 @@
 import { Logger } from "@utils/logger";
 
-export type CombineFn<T extends (...args: any[]) => any> = (...args: Parameters<T>) => ReturnType<T>;
+export type Shift<T extends any[]> = ((...t: T) => any) extends (first: any, ...rest: infer Rest) => any ? Rest : never;
 export type TypeMap<T extends { type: string }> = {
     [TKey in T["type"]]: TKey extends T["type"] ? Extract<T, { type: TKey }> : never;
 };

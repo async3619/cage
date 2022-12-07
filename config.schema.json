@@ -87,6 +87,23 @@
                                 "type"
                             ],
                             "additionalProperties": false
+                        },
+                        "github": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "const": "github"
+                                },
+                                "authToken": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "authToken",
+                                "type"
+                            ],
+                            "additionalProperties": false
                         }
                     },
                     "additionalProperties": false
