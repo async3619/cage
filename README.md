@@ -11,7 +11,7 @@
 
 <div align="center">
     <a href="https://www.npmjs.com/package/cage-cli">
-        <img alt="npm" src="https://img.shields.io/npm/v/cage-cli?style=flat-square">
+        <img alt="npm (tag)" src="https://img.shields.io/npm/v/cage-cli/dev?style=flat-square">
     </a>
     <a href="https://github.com/async3619/solv/blob/main/LICENSE">
         <img src="https://img.shields.io/github/license/async3619/solv.svg?style=flat-square" alt="MIT License" />
