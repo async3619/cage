@@ -36,38 +36,42 @@ export class Config {
             Config.logger.warn(`config file ${pathToken} has been created successfully.`);
         }
 
-        return Config.logger.work({
-            level: "info",
-            message: `loading config file from ${pathToken}`,
-            work: async () => {
-                const data: ConfigData = await fs.readJSON(filePath);
-                const valid = validate(data);
-                if (!valid && validate.errors) {
-                    const output = betterAjvErrors(schema, data, validate.errors, {
-                        format: "cli",
-                        indent: 4,
-                    });
+        try {
+            return await Config.logger.work({
+                level: "info",
+                message: `loading config file from ${pathToken}`,
+                work: async () => {
+                    const data: ConfigData = await fs.readJSON(filePath);
+                    const valid = validate(data);
+                    if (!valid && validate.errors) {
+                        const output = betterAjvErrors(schema, data, validate.errors, {
+                            format: "cli",
+                            indent: 4,
+                        });
 
-                    throw new Error(`config file is invalid.\n${output}`);
-                }
-
-                const watcherTypes = Object.keys(data.watchers) as WatcherTypes[];
-                const watchers: WatcherPair[] = [];
-                const watcherMap: WatcherMap = {} as WatcherMap;
-                for (const type of watcherTypes) {
-                    const configs = data.watchers[type];
-                    if (!configs) {
-                        throw new Error(`watcher \`${type}\` is not configured.`);
+                        throw new Error(`config file is invalid.\n${output}`);
                     }
 
-                    const watcher = createWatcher(configs);
-                    watchers.push([type, watcher]);
-                    watcherMap[type] = watcher as any;
-                }
+                    const watcherTypes = Object.keys(data.watchers) as WatcherTypes[];
+                    const watchers: WatcherPair[] = [];
+                    const watcherMap: WatcherMap = {} as WatcherMap;
+                    for (const type of watcherTypes) {
+                        const configs = data.watchers[type];
+                        if (!configs) {
+                            throw new Error(`watcher \`${type}\` is not configured.`);
+                        }
 
-                return new Config(data, watcherTypes, watchers, watcherMap);
-            },
-        });
+                        const watcher = createWatcher(configs);
+                        watchers.push([type, watcher]);
+                        watcherMap[type] = watcher as any;
+                    }
+
+                    return new Config(data, watcherTypes, watchers, watcherMap);
+                },
+            });
+        } catch (e) {
+            process.exit(-1);
+        }
     }
 
     get watcherTypes(): ReadonlyArray<WatcherTypes> {
