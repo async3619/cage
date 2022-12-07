@@ -12,7 +12,7 @@ import packageJson from "../package.json";
 
     program
         .name("cage")
-        .description("(almost) realtime unfollower detection for any social services 🦜⛓️ 🔒")
+        .description("(almost) realtime unfollower detection for any social services 🦜⛓️🔒")
         .option("-c, --config <path>", "path to the configuration file", "./config.json")
         .option("-v, --verbose", "enable verbose level logging")
         .version(packageJson.version)

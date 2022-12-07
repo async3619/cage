@@ -38,7 +38,7 @@ $ cage --help
 
 Usage: cage [options]
 
-(almost) realtime unfollower detection for any social services 🦜⛓️ 🔒
+(almost) realtime unfollower detection for any social services 🦜⛓️🔒
 
 Options:
   -c, --config <path>  path to the configuration file (default: "./config.json")
