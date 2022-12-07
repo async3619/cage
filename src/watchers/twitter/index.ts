@@ -13,10 +13,10 @@ export class TwitterWatcher extends BaseWatcher<"Twitter"> {
         super("Twitter");
         this.helper = new TwitterHelper(auth);
     }
-    public async initialize(): Promise<void> {
+
+    public async initialize() {
         await this.helper.initialize();
     }
-
     public async getFollowers() {
         const allFollowers = await this.helper.getFollowers();
 
@@ -26,17 +26,5 @@ export class TwitterWatcher extends BaseWatcher<"Twitter"> {
         ]);
 
         return allFollowers;
-    }
-
-    protected getHashData(): any {
-        return this.helper.getHashData();
-    }
-    protected serialize(): Record<string, any> {
-        return {
-            helper: this.helper.serialize(),
-        };
-    }
-    protected hydrate(data: Record<string, any>): void {
-        this.helper.hydrate(data.helper);
     }
 }

@@ -90,15 +90,11 @@ export class App extends Loggable {
         });
 
         for (const [, watcher] of watchers) {
-            await watcher.loadState();
-
             await this.logger.work({
                 level: "info",
                 message: `initialize \`${chalk.green(watcher.getName())}\` watcher`,
                 work: () => watcher.initialize(),
             });
-
-            await watcher.saveState();
         }
 
         for (const notifier of notifiers) {

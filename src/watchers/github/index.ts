@@ -29,19 +29,6 @@ export class GitHubWatcher extends BaseWatcher<"GitHub"> {
     public async initialize() {
         return;
     }
-
-    private async getCurrentUserId() {
-        const { data, error } = await this.client.query<MeQuery>(MeDocument, {}).toPromise();
-        if (error) {
-            throw error;
-        }
-
-        if (!data) {
-            throw new Error("No data returned from Me query");
-        }
-
-        return data.viewer.login;
-    }
     public async getFollowers() {
         const result: PartialUserData[] = [];
         const currentUserId = await this.getCurrentUserId();
@@ -61,6 +48,18 @@ export class GitHubWatcher extends BaseWatcher<"GitHub"> {
         return result;
     }
 
+    private async getCurrentUserId() {
+        const { data, error } = await this.client.query<MeQuery>(MeDocument, {}).toPromise();
+        if (error) {
+            throw error;
+        }
+
+        if (!data) {
+            throw new Error("No data returned from Me query");
+        }
+
+        return data.viewer.login;
+    }
     private async getFollowersFromUserId(
         targetUserId: string,
         cursor?: string,
@@ -104,16 +103,5 @@ export class GitHubWatcher extends BaseWatcher<"GitHub"> {
                 .filter<PartialUserData>((item: PartialUserData | null): item is PartialUserData => Boolean(item)),
             data.user.followers.pageInfo.endCursor,
         ];
-    }
-
-    protected getHashData(): any {
-        return this.options.authToken;
-    }
-
-    protected hydrate(data: GitHubWatcherOptions): void {
-        this.options.authToken = data.authToken;
-    }
-    protected serialize(): GitHubWatcherOptions {
-        return this.options;
     }
 }
