@@ -47,6 +47,24 @@ Options:
   -h, --help           display help for command
 ```
 
+or you can just deploy with `docker` if you want:
+
+```bash
+$ docker run -d --name cage async3619/cage -v /path/to/config.json:/home/node/config.json
+```
+
+of course, you can also use `docker-compose`:
+
+```yaml
+version: "3.9"
+
+services:
+  cage:
+    image: async3619/cage
+    volumes:
+      - /path/to/config.json:/home/node/config.json
+```
+
 ## Watchers and Notifiers
 
 ### Watchers
