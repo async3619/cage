@@ -53,7 +53,7 @@ export class App extends Loggable {
         const notifiers = this.config.notifiers;
 
         if (!watchers.length) {
-            this.logger.warn("no watchers are configured. exiting...");
+            this.logger.error("no watchers are configured. exiting...");
             return;
         }
 
