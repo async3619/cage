@@ -89,7 +89,11 @@ export class Logger implements Record<LogLevel, LoggerFn> {
         }
 
         for (const [, token, style] of matches) {
-            let item = replacements.shift() || "{}";
+            let item = replacements.shift();
+            if (typeof item === "undefined") {
+                item = "{}";
+            }
+
             if (style) {
                 style.split(",").forEach(style => {
                     if (CHALK_FORMAT_NAMES.includes(style as any)) {
