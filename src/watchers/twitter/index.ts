@@ -9,9 +9,9 @@ import { TwitterHelper } from "@watchers/twitter/helper";
 export class TwitterWatcher extends BaseWatcher<"Twitter"> {
     private readonly helper: TwitterHelper;
 
-    public constructor({ auth }: TwitterWatcherOptions) {
+    public constructor({ bearerToken }: TwitterWatcherOptions) {
         super("Twitter");
-        this.helper = new TwitterHelper(auth);
+        this.helper = new TwitterHelper(bearerToken);
     }
 
     public async initialize() {

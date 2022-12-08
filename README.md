@@ -130,26 +130,7 @@ specify watching interval in millisecond format. minimal value is `60000`.
 ```json5
 {
     "type": "twitter", // required
-
-    // one of these...
-    "auth": {
-        "type": "api-key", // required
-        "apiKey": "API key of your twitter app", // string, required
-        "apiSecret": "API secret of your twitter app" // string, required
-    },
-
-    // or ...
-    "auth": {
-        "type": "bearer-token", // required
-        "bearerToken": "bearer token of your twitter app" // string, required
-    },
-
-    // or ...
-    "auth": {
-        "type": "basic", // required
-        "username": "user id of your twitter account (e.g. @user_account)", // string, required
-        "password": "password of your twitter account" // string, required
-    }
+    "bearerToken": "bearer token of your twitter app" // string, required
 }
 ```
 
