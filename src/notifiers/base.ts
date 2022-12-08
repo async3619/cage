@@ -1,5 +1,10 @@
 import { UserLog } from "@repositories/models/user-log";
+
+import { BaseWatcher } from "@watchers/base";
+
 import { Loggable } from "@utils/types";
+
+export type NotifyPair = [BaseWatcher<string>, UserLog];
 
 export abstract class BaseNotifier extends Loggable {
     protected constructor(name: string) {
@@ -12,5 +17,5 @@ export abstract class BaseNotifier extends Loggable {
 
     public abstract initialize(options: Record<string, any>): Promise<void>;
 
-    public abstract notify(logs: UserLog[]): Promise<void>;
+    public abstract notify(logs: NotifyPair[]): Promise<void>;
 }

@@ -245,8 +245,13 @@ export class App extends Loggable {
             return;
         }
 
+        const watcherMap = this.config.watcherMap;
         for (const notifier of notifiers) {
-            await notifier.notify(newLogs);
+            await notifier.notify(
+                newLogs.map(log => {
+                    return [watcherMap[log.user.from], log];
+                }),
+            );
         }
     };
 }

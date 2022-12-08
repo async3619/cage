@@ -31,7 +31,11 @@ export class GitHubWatcher extends BaseWatcher<"GitHub"> {
     public async initialize() {
         return;
     }
-    public async getFollowers() {
+    public getProfileUrl(user: PartialUserData) {
+        return `https://github.com/${user.userId}`;
+    }
+
+    protected async getFollowers() {
         try {
             const result: PartialUserData[] = [];
             const currentUserId = await this.getCurrentUserId();
@@ -105,7 +109,7 @@ export class GitHubWatcher extends BaseWatcher<"GitHub"> {
 
         return [
             data.user.followers.edges
-                .map(edge => {
+                .map<PartialUserData | null>(edge => {
                     if (!edge?.node) {
                         return null;
                     }

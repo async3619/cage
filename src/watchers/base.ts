@@ -1,3 +1,4 @@
+import pluralize from "pluralize";
 import { UserData } from "@repositories/models/user";
 
 import { WatcherTypes } from "@watchers";
@@ -20,6 +21,8 @@ export abstract class BaseWatcher<TType extends string> extends Loggable<TType> 
     public async doWatch(): Promise<UserData[]> {
         const followers = await this.getFollowers();
 
+        this.logger.info("Successfully crawled {} {}", [followers.length, pluralize("follower", followers.length)]);
+
         return followers.map(user => ({
             ...user,
             from: this.getName().toLowerCase(),
@@ -27,4 +30,5 @@ export abstract class BaseWatcher<TType extends string> extends Loggable<TType> 
     }
 
     protected abstract getFollowers(): Promise<PartialUserData[]>;
+    public abstract getProfileUrl(user: UserData): string;
 }

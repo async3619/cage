@@ -1,13 +1,14 @@
 import pluralize from "pluralize";
+import dayjs from "dayjs";
 
 import { User } from "@repositories/models/user";
 import { UserLog, UserLogType } from "@repositories/models/user-log";
 
-import { BaseNotifier } from "@notifiers/base";
+import { BaseNotifier, NotifyPair } from "@notifiers/base";
+import { BaseWatcher } from "@watchers/base";
 
 import { Fetcher } from "@utils/fetcher";
 import { Logger } from "@utils/logger";
-import dayjs from "dayjs";
 
 export interface DiscordNotifierOptions {
     type: "discord";
@@ -43,12 +44,12 @@ export class DiscordNotifier extends BaseNotifier {
         this.webhookUrl = options.webhookUrl;
     }
 
-    public async notify(logs: UserLog[]) {
+    public async notify(pairs: NotifyPair[]) {
         if (!this.webhookUrl) {
             throw new Error("DiscordNotifier is not initialized");
         }
 
-        if (logs.length <= 0) {
+        if (pairs.length <= 0) {
             return;
         }
 
@@ -58,9 +59,9 @@ export class DiscordNotifier extends BaseNotifier {
                 {
                     title: Logger.format(
                         "Total {} {} {} found",
-                        logs.length,
-                        pluralize("change", logs.length),
-                        pluralize("was", logs.length),
+                        pairs.length,
+                        pluralize("change", pairs.length),
+                        pluralize("was", pairs.length),
                     ),
                     color: 5814783,
                     fields: [],
@@ -74,40 +75,26 @@ export class DiscordNotifier extends BaseNotifier {
             attachments: [],
         };
 
-        const newFields: DiscordWebhookData["embeds"][0]["fields"] = [];
-        const followerLogs = logs.filter(l => l.type === UserLogType.Follow);
-        if (followerLogs.length > 0) {
-            const field = this.generateEmbedField(
-                followerLogs,
-                Logger.format("🎉 {} new {}", followerLogs.length, pluralize("follower", logs.length)),
-            );
-
-            newFields.push(field);
-        }
-
-        const unfollowerLogs = logs.filter(l => l.type === UserLogType.Unfollow);
-        if (unfollowerLogs.length > 0) {
-            const field = this.generateEmbedField(
-                unfollowerLogs,
-                Logger.format("❌ {} {}", unfollowerLogs.length, pluralize("unfollower", logs.length)),
-            );
-
-            newFields.push(field);
-        }
-
-        const renameLogs = logs.filter(
-            l => l.type === UserLogType.RenameUserId || l.type === UserLogType.RenameDisplayName,
+        const fields: DiscordWebhookData["embeds"][0]["fields"] = [];
+        const followerLogs = pairs.filter(([, l]) => l.type === UserLogType.Follow);
+        const unfollowerLogs = pairs.filter(([, l]) => l.type === UserLogType.Unfollow);
+        const renameLogs = pairs.filter(
+            ([, l]) => l.type === UserLogType.RenameUserId || l.type === UserLogType.RenameDisplayName,
         );
-        if (renameLogs.length > 0) {
-            const field = this.generateEmbedField(
-                renameLogs,
-                Logger.format("✏️ {} {}", renameLogs.length, pluralize("rename", logs.length)),
-            );
 
-            newFields.push(field);
+        if (followerLogs.length > 0) {
+            fields.push(this.composeLogs(followerLogs, "🎉 {} new {}", "follower"));
         }
 
-        data.embeds[0].fields.push(...newFields);
+        if (unfollowerLogs.length > 0) {
+            fields.push(this.composeLogs(unfollowerLogs, "❌ {} {}", "unfollower"));
+        }
+
+        if (renameLogs.length > 0) {
+            fields.push(this.composeLogs(renameLogs, "✏️ {} {}", "rename"));
+        }
+
+        data.embeds[0].fields.push(...fields);
 
         await this.fetcher.fetch({
             url: this.webhookUrl,
@@ -116,28 +103,52 @@ export class DiscordNotifier extends BaseNotifier {
         });
     }
 
-    private generateEmbedField(logs: UserLog[], title: string) {
+    private composeLogs(
+        logs: NotifyPair[],
+        messageFormat: string,
+        word: string,
+    ): DiscordWebhookData["embeds"][0]["fields"][0] {
+        const { name, value } = this.generateEmbedField(
+            logs,
+            Logger.format(messageFormat, logs.length, pluralize(word, logs.length)),
+        );
+
+        const valueLines = [value];
+        if (logs.length > 10) {
+            valueLines.push(`_... and ${logs.length - 10} more_`);
+        }
+
+        return {
+            name,
+            value: valueLines.join("\n"),
+        };
+    }
+
+    private generateEmbedField(logs: NotifyPair[], title: string) {
         return {
             name: title,
             value: logs
-                .map<[User, UserLog]>(l => [l.user, l])
+                .map<[BaseWatcher<string>, User, UserLog]>(([w, l]) => [w, l.user, l])
                 .slice(0, 10)
-                .map(([user, log]) => {
+                .map(([watcher, user, log]) => {
                     if (log.type === UserLogType.RenameUserId || log.type === UserLogType.RenameDisplayName) {
                         return Logger.format(
-                            "{} (@{}) → {}{}",
+                            "[{}] [{} (@{})]({}) → {}{}",
+                            watcher.getName(),
                             log.oldDisplayName,
                             log.oldUserId,
+                            watcher.getProfileUrl(log.user),
                             log.type === UserLogType.RenameDisplayName ? "" : "@",
                             log.type === UserLogType.RenameUserId ? user.userId : user.displayName,
                         );
                     }
 
                     return Logger.format(
-                        "[{} (@{})](https://twitter.com/{})",
+                        "[{}] [{} (@{})]({})",
+                        watcher.getName(),
                         user.displayName,
                         user.userId,
-                        user.userId,
+                        watcher.getProfileUrl(user),
                     );
                 })
                 .join("\n"),
