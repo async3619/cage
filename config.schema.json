@@ -87,6 +87,23 @@
                                 "type"
                             ],
                             "additionalProperties": false
+                        },
+                        "slack": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "const": "slack"
+                                },
+                                "webhookUrl": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "type",
+                                "webhookUrl"
+                            ],
+                            "additionalProperties": false
                         }
                     },
                     "additionalProperties": false

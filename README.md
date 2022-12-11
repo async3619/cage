@@ -99,8 +99,8 @@ When we detect unfollowers, new followers, or any other events, Cage will notify
 | Service         | Support? |
 |-----------------|:--------:|
 | Discord WebHook |    ✅     |
-| Slack WebHook   |    ❌     |
-| Telegram Bot    |    ❌     |
+| Telegram Bot    |    ✅     |
+| Slack WebHook   |    ✅     |
 | Email           |    ❌     |
 | SMS             |    ❌     |
 
@@ -171,3 +171,14 @@ notifier configuration for Telegram Bot notifier.
 ```
 
 In most cases, you will not need `url` property since since Cage already provides hosted version of this server out of the box. but if you want to use custom notification relay server, take a look [this repoitory](https://github.com/async3619/cage-telegram-helper#usage).
+
+#### slack
+
+notifier configuration for Slack WebHook notifier.
+
+```json5
+{
+    "type": "slack",
+    "webhookUrl": "Slack WebHook url" // string, required
+}
+```

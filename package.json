@@ -73,6 +73,7 @@
     },
     "dependencies": {
         "@octokit/rest": "^19.0.5",
+        "@slack/webhook": "^6.1.0",
         "@twitter-api-v2/plugin-rate-limit": "^1.1.0",
         "@urql/core": "^3.0.5",
         "ajv": "^8.11.2",

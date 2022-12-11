@@ -17,6 +17,7 @@ export enum UserLogType {
     Unfollow = "unfollow",
     RenameDisplayName = "rename-display-name",
     RenameUserId = "rename-user-id",
+    Rename = "rename",
 }
 
 @Entity({ name: "user-logs" })

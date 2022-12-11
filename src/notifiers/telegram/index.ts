@@ -41,32 +41,12 @@ export class TelegramNotifier extends BaseNotifier<"Telegram"> {
         this.currentToken = await this.acquireToken();
     }
     public async notify(logs: NotifyPair[]): Promise<void> {
-        const {
-            follow,
-            unfollow,
-            "rename-user-id": renameUserId,
-            "rename-display-name": renameDisplayName,
-        } = groupNotifies(logs);
-
-        const targets: [NotifyPair[], number, string, string][] = [];
-        if (follow) {
-            targets.push([follow.slice(0, TELEGRAM_LOG_COUNT), follow.length, "follower", TELEGRAM_FOLLOWERS_TEMPLATE]);
-        }
-
-        if (unfollow) {
-            targets.push([
-                unfollow.slice(0, TELEGRAM_LOG_COUNT),
-                unfollow.length,
-                "unfollower",
-                TELEGRAM_UNFOLLOWERS_TEMPLATE,
-            ]);
-        }
-
-        if (renameUserId || renameDisplayName) {
-            const renames = [...(renameUserId || []).slice(0, 100), ...(renameDisplayName || []).slice(0, 100)];
-
-            targets.push([renames.slice(0, TELEGRAM_LOG_COUNT), renames.length, "rename", TELEGRAM_RENAMES_TEMPLATE]);
-        }
+        const { follow, unfollow, rename } = groupNotifies(logs);
+        const targets: [NotifyPair[], number, string, string][] = [
+            [follow.slice(0, TELEGRAM_LOG_COUNT), follow.length, "follower", TELEGRAM_FOLLOWERS_TEMPLATE],
+            [unfollow.slice(0, TELEGRAM_LOG_COUNT), unfollow.length, "unfollower", TELEGRAM_UNFOLLOWERS_TEMPLATE],
+            [rename.slice(0, TELEGRAM_LOG_COUNT), rename.length, "rename", TELEGRAM_RENAMES_TEMPLATE],
+        ];
 
         const resultMessages: string[] = [];
         for (const [target, count, word, template] of targets) {
