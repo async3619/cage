@@ -98,9 +98,9 @@ When we detect unfollowers, new followers, or any other events, Cage will notify
 
 | Service         | Support? |
 |-----------------|:--------:|
-| Discord WebHook |    ✅     |
+| Discord Webhook |    ✅     |
 | Telegram Bot    |    ✅     |
-| Slack WebHook   |    ✅     |
+| Slack Webhook   |    ✅     |
 | Email           |    ❌     |
 | SMS             |    ❌     |
 
@@ -149,12 +149,12 @@ watcher configuration for GitHub service.
 
 #### discord
 
-notifier configuration for Discord WebHook notifier.
+notifier configuration for Discord Webhook notifier.
 
 ```json5
 {
     "type": "discord",
-    "webhookUrl": "Discord WebHook url" // string, required
+    "webhookUrl": "Discord Webhook url" // string, required
 }
 ```
 
@@ -174,11 +174,11 @@ In most cases, you will not need `url` property since since Cage already provide
 
 #### slack
 
-notifier configuration for Slack WebHook notifier.
+notifier configuration for Slack Webhook notifier.
 
 ```json5
 {
     "type": "slack",
-    "webhookUrl": "Slack WebHook url" // string, required
+    "webhookUrl": "Slack Webhook url" // string, required
 }
 ```
