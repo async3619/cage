@@ -85,7 +85,9 @@ export class TelegramNotifier extends BaseNotifier<"Telegram"> {
             resultMessages.push(message);
         }
 
-        await this.pushNotify(["*\\[🦜 Cage Report\\]*", ...resultMessages]);
+        if (resultMessages.length > 0) {
+            await this.pushNotify(["*\\[🦜 Cage Report\\]*", ...resultMessages]);
+        }
     }
 
     private getEndpoint(path: string) {
