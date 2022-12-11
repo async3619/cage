@@ -165,6 +165,9 @@ notifier configuration for Telegram Bot notifier.
 ```json5
 {
     "type": "telegram",
-    "botToken": "token that generated from https://t.me/CageNotifierBot" // string, required
+    "botToken": "token that generated from https://t.me/CageNotifierBot", // string, required
+    "url": "custom notification relay server url" // string, optional
 }
 ```
+
+In most cases, you will not need `url` property since since Cage already provides hosted version of this server out of the box. but if you want to use custom notification relay server, take a look [this repoitory](https://github.com/async3619/cage-telegram-helper#usage).
