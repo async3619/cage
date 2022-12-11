@@ -1,8 +1,8 @@
+import { BaseWatcher, BaseWatcherOptions } from "@watchers/base";
 import { TwitterWatcher, TwitterWatcherOptions } from "@watchers/twitter";
 import { GitHubWatcher, GitHubWatcherOptions } from "@watchers/github";
 
 import { TypeMap } from "@utils/types";
-import { BaseWatcher, BaseWatcherOptions } from "@watchers/base";
 
 export type WatcherClasses = TwitterWatcher | GitHubWatcher;
 export type WatcherTypes = Lowercase<WatcherClasses["name"]>;
@@ -11,14 +11,12 @@ export type WatcherOptions = TwitterWatcherOptions | GitHubWatcherOptions;
 export type WatcherOptionMap = TypeMap<WatcherOptions>;
 
 export type WatcherMap = {
-    [TKey in WatcherClasses["name"] as Lowercase<TKey>]: TKey extends WatcherClasses["name"]
-        ? Extract<WatcherClasses, { name: TKey }>
-        : never;
+    [TKey in WatcherClasses["name"] as Lowercase<TKey>]: Extract<WatcherClasses, BaseWatcher<TKey>>;
 };
 export type WatcherFactoryMap = {
-    [TKey in WatcherClasses["name"] as Lowercase<TKey>]: TKey extends WatcherClasses["name"]
-        ? (options: WatcherOptionMap[Lowercase<TKey>]) => Extract<WatcherClasses, { name: TKey }>
-        : never;
+    [TKey in WatcherClasses["name"] as Lowercase<TKey>]: (
+        options: Extract<WatcherOptions, BaseWatcherOptions<BaseWatcher<TKey>>>,
+    ) => Extract<WatcherClasses, BaseWatcher<TKey>>;
 };
 export type WatcherPair = [WatcherTypes, BaseWatcher<string>];
 
