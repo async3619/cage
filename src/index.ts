@@ -3,7 +3,9 @@ import { Command } from "commander";
 import boxen from "boxen";
 
 import { App } from "@root/app";
+
 import { Logger } from "@utils/logger";
+import { drawLine, printLogo } from "@utils/cli";
 
 import packageJson from "../package.json";
 
@@ -32,6 +34,9 @@ interface CLIOptions {
         pkg: packageJson,
         distTag: packageJson.version.includes("dev") ? "dev" : "latest",
     }).fetchInfo();
+
+    const logoWidth = printLogo(latest, current);
+    drawLine(logoWidth);
 
     if (latest !== current) {
         const contents = Logger.format(
