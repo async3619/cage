@@ -5,6 +5,7 @@ import { Logger } from "@utils/logger";
 import { parseCookie } from "@utils/parseCookie";
 import { buildQueryString } from "@utils/buildQueryString";
 import { Hydratable, Serializable } from "@utils/types";
+import { HttpError } from "@utils/httpError";
 
 interface FetchOption {
     url: string;
@@ -75,7 +76,7 @@ export class Fetcher implements Serializable, Hydratable {
             });
 
             if (!response.ok) {
-                throw new Error(`${response.status} (${response.statusText})`);
+                throw new HttpError(response.status, response.statusText);
             }
 
             this.setCookies(response.headers.get("set-cookie"));

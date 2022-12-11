@@ -1,20 +1,17 @@
 import pluralize from "pluralize";
 import dayjs from "dayjs";
 
-import { User } from "@repositories/models/user";
-import { UserLog, UserLogType } from "@repositories/models/user-log";
+import { UserLogType } from "@repositories/models/user-log";
 
-import { BaseNotifier, NotifyPair } from "@notifiers/base";
-import { BaseWatcher } from "@watchers/base";
+import { BaseNotifier } from "@notifiers/base";
+import { BaseNotifierOption, NotifyPair } from "@notifiers/type";
 
 import { Fetcher } from "@utils/fetcher";
 import { Logger } from "@utils/logger";
 
-export interface DiscordNotifierOptions {
-    type: "discord";
+export interface DiscordNotifierOptions extends BaseNotifierOption<DiscordNotifier> {
     webhookUrl: string;
 }
-
 interface DiscordWebhookData {
     content: any;
     embeds: {
@@ -32,18 +29,17 @@ interface DiscordWebhookData {
     attachments: [];
 }
 
-export class DiscordNotifier extends BaseNotifier {
+export class DiscordNotifier extends BaseNotifier<"Discord"> {
     private readonly fetcher = new Fetcher();
     private webhookUrl: string | null = null;
 
-    public constructor() {
-        super(DiscordNotifier.name);
+    public constructor(private readonly options: DiscordNotifierOptions) {
+        super("Discord");
     }
 
-    public async initialize(options: DiscordNotifierOptions) {
-        this.webhookUrl = options.webhookUrl;
+    public async initialize() {
+        this.webhookUrl = this.options.webhookUrl;
     }
-
     public async notify(pairs: NotifyPair[]) {
         if (!this.webhookUrl) {
             throw new Error("DiscordNotifier is not initialized");
@@ -123,35 +119,10 @@ export class DiscordNotifier extends BaseNotifier {
             value: valueLines.join("\n"),
         };
     }
-
     private generateEmbedField(logs: NotifyPair[], title: string) {
         return {
             name: title,
-            value: logs
-                .map<[BaseWatcher<string>, User, UserLog]>(([w, l]) => [w, l.user, l])
-                .slice(0, 10)
-                .map(([watcher, user, log]) => {
-                    if (log.type === UserLogType.RenameUserId || log.type === UserLogType.RenameDisplayName) {
-                        return Logger.format(
-                            "[{}] [{} (@{})]({}) → {}{}",
-                            watcher.getName(),
-                            log.oldDisplayName,
-                            log.oldUserId,
-                            watcher.getProfileUrl(log.user),
-                            log.type === UserLogType.RenameDisplayName ? "" : "@",
-                            log.type === UserLogType.RenameUserId ? user.userId : user.displayName,
-                        );
-                    }
-
-                    return Logger.format(
-                        "[{}] [{} (@{})]({})",
-                        watcher.getName(),
-                        user.displayName,
-                        user.userId,
-                        watcher.getProfileUrl(user),
-                    );
-                })
-                .join("\n"),
+            value: logs.slice(0, 10).map(this.formatNotify).join("\n"),
         };
     }
 }

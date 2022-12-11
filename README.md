@@ -157,3 +157,14 @@ notifier configuration for Discord WebHook notifier.
     "webhookUrl": "Discord WebHook url" // string, required
 }
 ```
+
+#### telegram
+
+notifier configuration for Telegram Bot notifier.
+
+```json5
+{
+    "type": "telegram",
+    "botToken": "token that generated from https://t.me/CageNotifierBot" // string, required
+}
+```

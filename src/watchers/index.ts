@@ -1,8 +1,5 @@
-import { TwitterWatcher } from "@watchers/twitter";
-import { TwitterWatcherOptions } from "@watchers/twitter/types";
-
-import { GitHubWatcher } from "@watchers/github";
-import { GitHubWatcherOptions } from "@watchers/github/types";
+import { TwitterWatcher, TwitterWatcherOptions } from "@watchers/twitter";
+import { GitHubWatcher, GitHubWatcherOptions } from "@watchers/github";
 
 import { TypeMap } from "@utils/types";
 import { BaseWatcher, BaseWatcherOptions } from "@watchers/base";
@@ -30,7 +27,7 @@ const AVAILABLE_WATCHERS: Readonly<WatcherFactoryMap> = {
     github: options => new GitHubWatcher(options),
 };
 
-export const createWatcher = (options: BaseWatcherOptions<any>): BaseWatcher<string> => {
+export const createWatcher = (options: BaseWatcherOptions): BaseWatcher<string> => {
     const { type } = options;
 
     return AVAILABLE_WATCHERS[type](options);

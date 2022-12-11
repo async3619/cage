@@ -97,18 +97,11 @@ export class App extends Loggable {
             });
         }
 
-        for (const notifier of notifiers) {
-            const options = this.config.notifierOptions?.[notifier.getName().toLowerCase()];
-            if (!options) {
-                this.logger.warn(`no options are configured for \`${chalk.green("{}")}\` notifier. skipping...`, [
-                    notifier.getName(),
-                ]);
-            }
-
+        for (const [, notifier] of notifiers) {
             await this.logger.work({
                 level: "info",
                 message: `initialize \`${chalk.green(notifier.getName())}\` notifier`,
-                work: () => notifier.initialize(options),
+                work: () => notifier.initialize(),
             });
         }
 
@@ -246,7 +239,7 @@ export class App extends Loggable {
         }
 
         const watcherMap = this.config.watcherMap;
-        for (const notifier of notifiers) {
+        for (const [, notifier] of notifiers) {
             await notifier.notify(
                 newLogs.map(log => {
                     return [watcherMap[log.user.from], log];

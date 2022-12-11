@@ -67,6 +67,26 @@
                                 "webhookUrl"
                             ],
                             "additionalProperties": false
+                        },
+                        "telegram": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "const": "telegram"
+                                },
+                                "token": {
+                                    "type": "string"
+                                },
+                                "url": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "token",
+                                "type"
+                            ],
+                            "additionalProperties": false
                         }
                     },
                     "additionalProperties": false
@@ -74,7 +94,8 @@
             },
             "required": [
                 "watchInterval",
-                "watchers"
+                "watchers",
+                "notifiers"
             ],
             "additionalProperties": false
         }

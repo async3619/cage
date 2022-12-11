@@ -3,8 +3,11 @@ import { TwitterApiRateLimitPlugin } from "@twitter-api-v2/plugin-rate-limit";
 
 import { UserData } from "@repositories/models/user";
 
-import { BaseWatcher } from "@watchers/base";
-import { TwitterWatcherOptions } from "@watchers/twitter/types";
+import { BaseWatcher, BaseWatcherOptions } from "@watchers/base";
+
+export interface TwitterWatcherOptions extends BaseWatcherOptions<TwitterWatcher> {
+    bearerToken: string;
+}
 
 export class TwitterWatcher extends BaseWatcher<"Twitter"> {
     private readonly twitterClient: TwitterApiReadOnly;

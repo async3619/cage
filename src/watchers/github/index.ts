@@ -1,12 +1,15 @@
 import nodeFetch from "node-fetch";
 import { Client, CombinedError, createClient } from "@urql/core";
 
-import { BaseWatcher, PartialUserData } from "@watchers/base";
+import { BaseWatcher, BaseWatcherOptions, PartialUserData } from "@watchers/base";
 import { FollowersDocument, MeDocument } from "@watchers/github/queries";
-import { GitHubWatcherOptions } from "@watchers/github/types";
 
 import { FollowersQuery, FollowersQueryVariables, MeQuery } from "@root/queries.data";
 import { Nullable } from "@utils/types";
+
+export interface GitHubWatcherOptions extends BaseWatcherOptions<GitHubWatcher> {
+    authToken: string;
+}
 
 export class GitHubWatcher extends BaseWatcher<"GitHub"> {
     private client: Client;

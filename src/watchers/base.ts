@@ -1,12 +1,10 @@
 import pluralize from "pluralize";
 import { UserData } from "@repositories/models/user";
 
-import { WatcherTypes } from "@watchers";
-
 import { Loggable } from "@utils/types";
 
-export interface BaseWatcherOptions<TType extends WatcherTypes> {
-    type: TType;
+export interface BaseWatcherOptions<TWatcher = unknown> {
+    type: TWatcher extends BaseWatcher<infer TType> ? Lowercase<TType> : string;
 }
 
 export type PartialUserData = Omit<UserData, "from">;

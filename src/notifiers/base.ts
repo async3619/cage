@@ -1,13 +1,11 @@
-import { UserLog } from "@repositories/models/user-log";
-
-import { BaseWatcher } from "@watchers/base";
+import { NotifyPair } from "@notifiers/type";
 
 import { Loggable } from "@utils/types";
+import { UserLogType } from "@repositories/models/user-log";
+import { Logger } from "@utils/logger";
 
-export type NotifyPair = [BaseWatcher<string>, UserLog];
-
-export abstract class BaseNotifier extends Loggable {
-    protected constructor(name: string) {
+export abstract class BaseNotifier<TType extends string> extends Loggable<TType> {
+    protected constructor(name: TType) {
         super(name);
     }
 
@@ -15,7 +13,28 @@ export abstract class BaseNotifier extends Loggable {
         return super.getName().replace("Notifier", "");
     }
 
-    public abstract initialize(options: Record<string, any>): Promise<void>;
+    public abstract initialize(): Promise<void>;
 
     public abstract notify(logs: NotifyPair[]): Promise<void>;
+
+    protected formatNotify(pair: NotifyPair): string {
+        const [watcher, log] = pair;
+        const { user } = log;
+
+        if (log.type === UserLogType.RenameUserId || log.type === UserLogType.RenameDisplayName) {
+            const tokens = [
+                watcher.getName(),
+                log.oldDisplayName || "",
+                log.oldUserId || "",
+                watcher.getProfileUrl(log.user),
+                log.type === UserLogType.RenameDisplayName ? "" : "@",
+                log.type === UserLogType.RenameUserId ? user.userId : user.displayName,
+            ];
+
+            return Logger.format("[{}] [{} (@{})]({}) → {}{}", ...tokens);
+        }
+
+        const tokens = [watcher.getName(), user.displayName, user.userId, watcher.getProfileUrl(user)];
+        return Logger.format("[{}] [{} (@{})]({})", ...tokens);
+    }
 }

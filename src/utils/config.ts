@@ -1,11 +1,10 @@
-import _ from "lodash";
 import * as path from "path";
 import * as fs from "fs-extra";
 import chalk from "chalk";
 import betterAjvErrors from "better-ajv-errors";
 
 import { createWatcher, WatcherMap, WatcherPair, WatcherTypes } from "@watchers";
-import { AVAILABLE_NOTIFIERS } from "@notifiers";
+import { createNotifier, NotifierMap, NotifierPair, NotifierTypes } from "@notifiers";
 
 import { DEFAULT_CONFIG, validate } from "@utils/config.const";
 import { ConfigData } from "@utils/config.type";
@@ -54,7 +53,7 @@ export class Config {
 
                     const watcherTypes = Object.keys(data.watchers) as WatcherTypes[];
                     const watchers: WatcherPair[] = [];
-                    const watcherMap: WatcherMap = {} as WatcherMap;
+                    const watcherMap: Partial<WatcherMap> = {};
                     for (const type of watcherTypes) {
                         const configs = data.watchers[type];
                         if (!configs) {
@@ -66,7 +65,21 @@ export class Config {
                         watcherMap[type] = watcher as any;
                     }
 
-                    return new Config(data, watcherTypes, watchers, watcherMap);
+                    const notifierTypes = Object.keys(data.notifiers) as NotifierTypes[];
+                    const notifiers: NotifierPair[] = [];
+                    const notifierMap: Partial<NotifierMap> = {};
+                    for (const type of notifierTypes) {
+                        const configs = data.notifiers[type];
+                        if (!configs) {
+                            throw new Error(`notifier \`${type}\` is not configured.`);
+                        }
+
+                        const notifier = createNotifier(configs);
+                        notifiers.push([type, notifier]);
+                        notifierMap[type] = notifier as any;
+                    }
+
+                    return new Config(data, watcherTypes, watchers, watcherMap, notifierTypes, notifiers, notifierMap);
                 },
             });
         } catch (e) {
@@ -77,25 +90,21 @@ export class Config {
     get watcherTypes(): ReadonlyArray<WatcherTypes> {
         return [...this._watcherTypes];
     }
-
     get watchers(): ReadonlyArray<WatcherPair> {
         return [...this._watchers];
     }
-
-    get watcherMap(): WatcherMap {
+    get watcherMap(): Partial<WatcherMap> {
         return { ...this._watcherMap };
     }
 
-    public get notifiers() {
-        if (!this.rawData.notifiers) {
-            return [];
-        }
-
-        const names = Object.keys(this.rawData.notifiers);
-        return AVAILABLE_NOTIFIERS.filter(n => names.includes(n.getName().replace("Notifier", "").toLowerCase()));
+    get notifierTypes(): ReadonlyArray<NotifierTypes> {
+        return [...this._notifierTypes];
     }
-    public get notifierOptions() {
-        return _.cloneDeep(this.rawData.notifiers);
+    get notifiers(): ReadonlyArray<NotifierPair> {
+        return [...this._notifiers];
+    }
+    get notifierMap(): Partial<NotifierMap> {
+        return { ...this._notifierMap };
     }
 
     public get watchInterval() {
@@ -106,6 +115,9 @@ export class Config {
         private readonly rawData: ConfigData,
         private readonly _watcherTypes: ReadonlyArray<WatcherTypes>,
         private readonly _watchers: ReadonlyArray<WatcherPair>,
-        private readonly _watcherMap: WatcherMap,
+        private readonly _watcherMap: Partial<WatcherMap>,
+        private readonly _notifierTypes: NotifierTypes[],
+        private readonly _notifiers: NotifierPair[],
+        private readonly _notifierMap: Partial<NotifierMap>,
     ) {}
 }
