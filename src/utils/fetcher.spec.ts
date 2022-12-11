@@ -167,7 +167,7 @@ describe("Fetcher class", function () {
         });
 
         await expect(target.fetch({ url: "", retryCount: 3, retryDelay: 0 })).rejects.toThrow(
-            "500 (Internal Server Error)",
+            "HTTP Error 500: Internal Server Error",
         );
         expect(calledCount).toBe(4);
     });
@@ -189,7 +189,7 @@ describe("Fetcher class", function () {
 
         const [, elapsedTime] = await throttle(
             expect(target.fetch({ url: "", retryCount: 3, retryDelay: 500 })).rejects.toThrow(
-                "500 (Internal Server Error)",
+                "HTTP Error 500: Internal Server Error",
             ),
             0,
             true,
