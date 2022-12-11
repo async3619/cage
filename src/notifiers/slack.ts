@@ -44,10 +44,13 @@ export class SlackNotifier extends BaseNotifier<"Slack"> {
             ],
         };
 
+        let shouldNotify = false;
         for (const [logs, count, template, word] of targets) {
             if (logs.length <= 0) {
                 continue;
             }
+
+            shouldNotify = true;
 
             const title = Logger.format(template, count, word);
             const userContents = logs.map(this.formatNotify).join("\n");
@@ -70,7 +73,9 @@ export class SlackNotifier extends BaseNotifier<"Slack"> {
             });
         }
 
-        await this.webhook.send(result);
+        if (shouldNotify) {
+            await this.webhook.send(result);
+        }
     }
 
     protected formatNotify(pair: NotifyPair): string {
