@@ -1,7 +1,9 @@
 import pluralize from "pluralize";
+import { capitalCase } from "change-case";
+
+import { UserLogType } from "@repositories/models/user-log";
 
 import { BaseNotifier } from "@notifiers/base";
-import { BaseNotifierOption, NotifyPair } from "@notifiers/type";
 import {
     FORBIDDEN_CHARACTERS,
     TELEGRAM_FOLLOWERS_TEMPLATE,
@@ -9,12 +11,12 @@ import {
     TELEGRAM_RENAMES_TEMPLATE,
     TELEGRAM_UNFOLLOWERS_TEMPLATE,
 } from "@notifiers/telegram/constants";
+import { BaseNotifierOption, NotifyPair } from "@notifiers/type";
 
 import { Fetcher } from "@utils/fetcher";
 import { groupNotifies } from "@utils/groupNotifies";
 import { Logger } from "@utils/logger";
 import { HttpError } from "@utils/httpError";
-import { UserLogType } from "@repositories/models/user-log";
 
 export interface TelegramNotifierOptions extends BaseNotifierOption<TelegramNotifier> {
     token: string;
@@ -43,7 +45,7 @@ export class TelegramNotifier extends BaseNotifier<"Telegram"> {
     public async notify(logs: NotifyPair[]): Promise<void> {
         const { follow, unfollow, rename } = groupNotifies(logs);
         const targets: [NotifyPair[], number, string, string][] = [
-            [follow.slice(0, TELEGRAM_LOG_COUNT), follow.length, "follower", TELEGRAM_FOLLOWERS_TEMPLATE],
+            [follow.slice(0, TELEGRAM_LOG_COUNT), follow.length, "new follower", TELEGRAM_FOLLOWERS_TEMPLATE],
             [unfollow.slice(0, TELEGRAM_LOG_COUNT), unfollow.length, "unfollower", TELEGRAM_UNFOLLOWERS_TEMPLATE],
             [rename.slice(0, TELEGRAM_LOG_COUNT), rename.length, "rename", TELEGRAM_RENAMES_TEMPLATE],
         ];
@@ -66,7 +68,12 @@ export class TelegramNotifier extends BaseNotifier<"Telegram"> {
         }
 
         if (resultMessages.length > 0) {
-            await this.pushNotify(["*\\[🦜 Cage Report\\]*", ...resultMessages]);
+            const titleItems = targets.map(([, count, word]) => {
+                return count > 0 ? `${count} ${pluralize(capitalCase(word), count)}\n` : "";
+            });
+            const title = Logger.format("*🦜 Cage Report*\n\n{}{}{}", ...titleItems).trim();
+
+            await this.pushNotify([title, ...resultMessages]);
         }
     }
 

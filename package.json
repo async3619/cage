@@ -80,6 +80,7 @@
         "better-ajv-errors": "^1.2.0",
         "boxen": "^5.1.2",
         "chalk": "^4.1.2",
+        "change-case": "^4.1.2",
         "commander": "^9.4.1",
         "conventional-changelog-conventionalcommits": "^5.0.0",
         "cronstrue": "^2.20.0",

@@ -1,5 +1,5 @@
 export const TELEGRAM_FOLLOWERS_TEMPLATE = `
-*🎉 {} new {}*
+*🎉 {} {}*
 
 {}
 {}
