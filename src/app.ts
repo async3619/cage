@@ -238,6 +238,10 @@ export class App extends Loggable {
             return;
         }
 
+        if (newLogs.length <= 0) {
+            return;
+        }
+
         const watcherMap = this.config.watcherMap;
         for (const [, notifier] of notifiers) {
             await notifier.notify(
