@@ -1,11 +1,8 @@
 import pluralize from "pluralize";
 import { capitalCase } from "change-case";
 
-import { UserLogType } from "@repositories/models/user-log";
-
 import { BaseNotifier } from "@notifiers/base";
 import {
-    FORBIDDEN_CHARACTERS,
     TELEGRAM_FOLLOWERS_TEMPLATE,
     TELEGRAM_LOG_COUNT,
     TELEGRAM_RENAMES_TEMPLATE,
@@ -61,7 +58,7 @@ export class TelegramNotifier extends BaseNotifier<"Telegram"> {
                 count,
                 pluralize(word, count),
                 target.map(this.formatNotify).join("\n"),
-                count > TELEGRAM_LOG_COUNT ? `_\\.\\.\\. and ${count - TELEGRAM_LOG_COUNT} more_` : "",
+                count > TELEGRAM_LOG_COUNT ? `_... and ${count - TELEGRAM_LOG_COUNT} more_` : "",
             ).trim();
 
             resultMessages.push(message);
@@ -71,7 +68,7 @@ export class TelegramNotifier extends BaseNotifier<"Telegram"> {
             const titleItems = targets.map(([, count, word]) => {
                 return count > 0 ? `${count} ${pluralize(capitalCase(word), count)}\n` : "";
             });
-            const title = Logger.format("*🦜 Cage Report*\n\n{}{}{}", ...titleItems).trim();
+            const title = Logger.format("_**🦜 Cage Report**_\n\n{}{}{}", ...titleItems).trim();
 
             await this.pushNotify([title, ...resultMessages]);
         }
@@ -124,42 +121,4 @@ export class TelegramNotifier extends BaseNotifier<"Telegram"> {
             }
         }
     }
-
-    protected escapeTexts(texts: string[]) {
-        return texts.map(text => this.escapeText(text));
-    }
-    protected escapeText(text: string) {
-        for (const ch of FORBIDDEN_CHARACTERS) {
-            text = text.replace(new RegExp(`\\${ch}`, "g"), `\\${ch}`);
-        }
-
-        return text;
-    }
-
-    protected formatNotify = (pair: NotifyPair): string => {
-        const [watcher, log] = pair;
-        const { user } = log;
-
-        if (log.type === UserLogType.RenameUserId || log.type === UserLogType.RenameDisplayName) {
-            const tokens = this.escapeTexts([
-                watcher.getName(),
-                log.oldDisplayName || "",
-                log.oldUserId || "",
-                watcher.getProfileUrl(log.user),
-                log.type === UserLogType.RenameDisplayName ? "" : "@",
-                log.type === UserLogType.RenameUserId ? user.userId : user.displayName,
-            ]);
-
-            return Logger.format("\\[{}\\] [{} (@{})]\\({}\\) → {}{}", ...tokens);
-        }
-
-        const tokens = this.escapeTexts([
-            watcher.getName(),
-            user.displayName,
-            user.userId,
-            watcher.getProfileUrl(user),
-        ]);
-
-        return Logger.format("\\[{}\\] [{} \\(@{}\\)]({})", ...tokens);
-    };
 }
