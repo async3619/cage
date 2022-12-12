@@ -13,7 +13,7 @@ export const validate = ajv.compile<ConfigData>(
                 type: "object",
                 properties: {
                     watchInterval: {
-                        minimum: 60000,
+                        minimum: process.env.NODE_ENV === "development" ? 10000 : 60000,
                     },
                 },
             },
