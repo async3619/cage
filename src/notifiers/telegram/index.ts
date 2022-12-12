@@ -73,8 +73,6 @@ export class TelegramNotifier extends BaseNotifier<"Telegram"> {
         return token;
     }
     private async pushNotify(content: TelegramNotificationData) {
-        console.log(content);
-
         while (true) {
             try {
                 await this.fetcher.fetchJson<NotifyResponse>({
