@@ -1,31 +1,19 @@
 import pluralize from "pluralize";
-import { capitalCase } from "change-case";
 
 import { BaseNotifier } from "@notifiers/base";
-import {
-    TELEGRAM_FOLLOWERS_TEMPLATE,
-    TELEGRAM_LOG_COUNT,
-    TELEGRAM_RENAMES_TEMPLATE,
-    TELEGRAM_UNFOLLOWERS_TEMPLATE,
-} from "@notifiers/telegram/constants";
 import { BaseNotifierOption, NotifyPair } from "@notifiers/type";
+import { TELEGRAM_LOG_COUNT } from "@notifiers/telegram/constants";
+import { NotifyResponse, TelegramNotificationData, TokenResponse } from "@notifiers/telegram/types";
 
 import { Fetcher } from "@utils/fetcher";
 import { groupNotifies } from "@utils/groupNotifies";
 import { Logger } from "@utils/logger";
 import { HttpError } from "@utils/httpError";
+import { generateNotificationTargets } from "@notifiers/telegram/utils";
 
 export interface TelegramNotifierOptions extends BaseNotifierOption<TelegramNotifier> {
     token: string;
     url?: string;
-}
-
-interface TokenResponse {
-    token: string;
-    expires: number;
-}
-interface NotifyResponse {
-    success: boolean;
 }
 
 export class TelegramNotifier extends BaseNotifier<"Telegram"> {
@@ -41,37 +29,29 @@ export class TelegramNotifier extends BaseNotifier<"Telegram"> {
     }
     public async notify(logs: NotifyPair[]): Promise<void> {
         const { follow, unfollow, rename } = groupNotifies(logs);
-        const targets: [NotifyPair[], number, string, string][] = [
-            [follow.slice(0, TELEGRAM_LOG_COUNT), follow.length, "new follower", TELEGRAM_FOLLOWERS_TEMPLATE],
-            [unfollow.slice(0, TELEGRAM_LOG_COUNT), unfollow.length, "unfollower", TELEGRAM_UNFOLLOWERS_TEMPLATE],
-            [rename.slice(0, TELEGRAM_LOG_COUNT), rename.length, "rename", TELEGRAM_RENAMES_TEMPLATE],
-        ];
+        const targets = generateNotificationTargets({
+            unfollowers: unfollow,
+            followers: follow,
+            renames: rename,
+        });
 
-        const resultMessages: string[] = [];
-        for (const [target, count, word, template] of targets) {
-            if (target.length <= 0) {
+        const notifyData: Partial<TelegramNotificationData> = {};
+        for (const { fieldName, countFieldName, count, word, template, pairs } of targets) {
+            if (count <= 0) {
                 continue;
             }
 
-            const message = Logger.format(
+            notifyData[countFieldName] = count;
+            notifyData[fieldName] = Logger.format(
                 template,
                 count,
                 pluralize(word, count),
-                target.map(this.formatNotify).join("\n"),
+                pairs.map(this.formatNotify).join("\n"),
                 count > TELEGRAM_LOG_COUNT ? `_... and ${count - TELEGRAM_LOG_COUNT} more_` : "",
             ).trim();
-
-            resultMessages.push(message);
         }
 
-        if (resultMessages.length > 0) {
-            const titleItems = targets.map(([, count, word]) => {
-                return count > 0 ? `${count} ${pluralize(capitalCase(word), count)}\n` : "";
-            });
-            const title = Logger.format("_**🦜 Cage Report**_\n\n{}{}{}", ...titleItems).trim();
-
-            await this.pushNotify([title, ...resultMessages]);
-        }
+        await this.pushNotify(notifyData);
     }
 
     private getEndpoint(path: string) {
@@ -92,7 +72,9 @@ export class TelegramNotifier extends BaseNotifier<"Telegram"> {
 
         return token;
     }
-    private async pushNotify(content: string[]) {
+    private async pushNotify(content: TelegramNotificationData) {
+        console.log(content);
+
         while (true) {
             try {
                 await this.fetcher.fetchJson<NotifyResponse>({
@@ -104,7 +86,7 @@ export class TelegramNotifier extends BaseNotifier<"Telegram"> {
                     },
                     data: {
                         token: this.options.token,
-                        content,
+                        ...content,
                     },
                     retryCount: 5,
                     retryDelay: 0,

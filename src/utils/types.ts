@@ -1,5 +1,9 @@
 import { Logger } from "@utils/logger";
 
+export type SelectOnly<Record, Type extends Record[keyof Record]> = {
+    [Key in keyof Required<Record> as Required<Record>[Key] extends Type ? Key : never]: Record[Key];
+};
+
 export type TypeMap<T extends { type: string }> = {
     [TKey in T["type"]]: TKey extends T["type"] ? Extract<T, { type: TKey }> : never;
 };
@@ -18,7 +22,6 @@ export type Nullable<T> = T | null | undefined;
 export interface Serializable {
     serialize(): Record<string, unknown>;
 }
-
 export interface Hydratable {
     hydrate(data: Record<string, any>): void;
 }
