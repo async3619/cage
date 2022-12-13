@@ -20,6 +20,7 @@ export class GitHubWatcher extends BaseWatcher<"GitHub"> {
         this.client = createClient({
             url: "https://api.github.com/graphql",
             fetch: nodeFetch as unknown as typeof fetch,
+            requestPolicy: "network-only",
             fetchOptions: () => {
                 return {
                     method: "POST",
