@@ -45,6 +45,10 @@ export class DiscordNotifier extends BaseNotifier<"Discord"> {
             throw new Error("DiscordNotifier is not initialized");
         }
 
+        if (pairs.length <= 0) {
+            return;
+        }
+
         const data: DiscordWebhookData = {
             content: null,
             embeds: [
