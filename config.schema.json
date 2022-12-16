@@ -107,6 +107,12 @@
                         }
                     },
                     "additionalProperties": false
+                },
+                "ignores": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             },
             "required": [

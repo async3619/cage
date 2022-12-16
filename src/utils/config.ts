@@ -107,6 +107,9 @@ export class Config {
         return { ...this._notifierMap };
     }
 
+    public get ignores(): ReadonlyArray<string> {
+        return [...(this.rawData.ignores || [])];
+    }
     public get watchInterval() {
         return this.rawData.watchInterval;
     }

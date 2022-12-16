@@ -238,6 +238,19 @@ export class App extends Loggable {
             return;
         }
 
+        const ignoredIds = this.config.ignores;
+        if (ignoredIds.length) {
+            this.logger.info("ignoring {}", [pluralize("user", ignoredIds.length, true)]);
+
+            for (const log of newLogs) {
+                if (!ignoredIds.includes(log.user.id)) {
+                    continue;
+                }
+
+                newLogs.splice(newLogs.indexOf(log), 1);
+            }
+        }
+
         if (newLogs.length <= 0) {
             return;
         }
