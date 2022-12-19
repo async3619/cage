@@ -20,11 +20,15 @@
                                 },
                                 "bearerToken": {
                                     "type": "string"
+                                },
+                                "username": {
+                                    "type": "string"
                                 }
                             },
                             "required": [
                                 "bearerToken",
-                                "type"
+                                "type",
+                                "username"
                             ],
                             "additionalProperties": false
                         },

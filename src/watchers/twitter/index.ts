@@ -7,25 +7,42 @@ import { BaseWatcher, BaseWatcherOptions } from "@watchers/base";
 
 export interface TwitterWatcherOptions extends BaseWatcherOptions<TwitterWatcher> {
     bearerToken: string;
+    username: string;
 }
 
 export class TwitterWatcher extends BaseWatcher<"Twitter"> {
     private readonly twitterClient: TwitterApiReadOnly;
+    private readonly currentUserName: string;
+    private currentUserId: string | null = null;
 
-    public constructor({ bearerToken }: TwitterWatcherOptions) {
+    public constructor({ bearerToken, username }: TwitterWatcherOptions) {
         super("Twitter");
         this.twitterClient = new TwitterApi(bearerToken, { plugins: [new TwitterApiRateLimitPlugin()] }).readOnly;
+        this.currentUserName = username;
     }
 
     public async initialize() {
-        return;
+        const { data } = await this.twitterClient.v2.userByUsername(this.currentUserName, {
+            "user.fields": ["id"],
+        });
+
+        if (!data) {
+            throw new Error("Failed to get user id");
+        }
+
+        this.logger.verbose("Successfully initialized with user id {}", [data.id]);
+        this.currentUserId = data.id;
     }
     public getProfileUrl(user: UserData) {
         return `https://twitter.com/${user.userId}`;
     }
 
     protected async getFollowers() {
-        const followers = await this.twitterClient.v2.followers("1569485307049033729", {
+        if (!this.currentUserId) {
+            throw new Error("Watcher is not initialized");
+        }
+
+        const followers = await this.twitterClient.v2.followers(this.currentUserId, {
             max_results: 1000,
             "user.fields": ["id", "name", "username", "profile_image_url"],
         });
