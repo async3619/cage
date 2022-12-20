@@ -1,17 +1,17 @@
 import _ from "lodash";
 
-import { UserLogType } from "@repositories/models/user-log";
+import { UserLog, UserLogType } from "@repositories/models/user-log";
 
-import { NotifyPair } from "@notifiers/type";
+import { UserLogMap } from "@notifiers/type";
 
-type MapKeys = Exclude<UserLogType, UserLogType.RenameUserId | UserLogType.RenameDisplayName>;
-
-export function groupNotifies(pairs: NotifyPair[]): Record<MapKeys, NotifyPair[]> {
-    const result = _.groupBy(pairs, ([, log]) => log.type);
+export function groupNotifies(pairs: UserLog[]): UserLogMap {
+    const result = _.groupBy(pairs, log => log.type);
 
     return {
         [UserLogType.Follow]: result[UserLogType.Follow] || [],
         [UserLogType.Unfollow]: result[UserLogType.Unfollow] || [],
+        [UserLogType.RenameUserId]: result[UserLogType.RenameUserId] || [],
+        [UserLogType.RenameDisplayName]: result[UserLogType.RenameDisplayName] || [],
         [UserLogType.Rename]: [
             ...(result[UserLogType.RenameDisplayName] || []),
             ...(result[UserLogType.RenameUserId] || []),

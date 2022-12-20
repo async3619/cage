@@ -1,10 +1,10 @@
 import pluralize from "pluralize";
 import dayjs from "dayjs";
 
-import { UserLogType } from "@repositories/models/user-log";
+import { UserLog, UserLogType } from "@repositories/models/user-log";
 
 import { BaseNotifier } from "@notifiers/base";
-import { BaseNotifierOption, NotifyPair } from "@notifiers/type";
+import { BaseNotifierOption, UserLogMap } from "@notifiers/type";
 
 import { Fetcher } from "@utils/fetcher";
 import { Logger } from "@utils/logger";
@@ -40,12 +40,12 @@ export class DiscordNotifier extends BaseNotifier<"Discord"> {
     public async initialize() {
         this.webhookUrl = this.options.webhookUrl;
     }
-    public async notify(pairs: NotifyPair[]) {
+    public async notify(logs: UserLog[], logMap: UserLogMap) {
         if (!this.webhookUrl) {
             throw new Error("DiscordNotifier is not initialized");
         }
 
-        if (pairs.length <= 0) {
+        if (logs.length <= 0) {
             return;
         }
 
@@ -55,9 +55,9 @@ export class DiscordNotifier extends BaseNotifier<"Discord"> {
                 {
                     title: Logger.format(
                         "Total {} {} {} found",
-                        pairs.length,
-                        pluralize("change", pairs.length),
-                        pluralize("was", pairs.length),
+                        logs.length,
+                        pluralize("change", logs.length),
+                        pluralize("was", logs.length),
                     ),
                     color: 5814783,
                     fields: [],
@@ -72,12 +72,9 @@ export class DiscordNotifier extends BaseNotifier<"Discord"> {
         };
 
         const fields: DiscordWebhookData["embeds"][0]["fields"] = [];
-        const followerLogs = pairs.filter(([, l]) => l.type === UserLogType.Follow);
-        const unfollowerLogs = pairs.filter(([, l]) => l.type === UserLogType.Unfollow);
-        const renameLogs = pairs.filter(
-            ([, l]) => l.type === UserLogType.RenameUserId || l.type === UserLogType.RenameDisplayName,
-        );
-
+        const followerLogs = logMap[UserLogType.Follow];
+        const unfollowerLogs = logMap[UserLogType.Unfollow];
+        const renameLogs = logMap[UserLogType.Rename];
         if (followerLogs.length > 0) {
             fields.push(this.composeLogs(followerLogs, "🎉 {} new {}", "follower"));
         }
@@ -100,15 +97,12 @@ export class DiscordNotifier extends BaseNotifier<"Discord"> {
     }
 
     private composeLogs(
-        logs: NotifyPair[],
+        logs: UserLog[],
         messageFormat: string,
         word: string,
     ): DiscordWebhookData["embeds"][0]["fields"][0] {
-        const { name, value } = this.generateEmbedField(
-            logs,
-            Logger.format(messageFormat, logs.length, pluralize(word, logs.length)),
-        );
-
+        const message = Logger.format(messageFormat, logs.length, pluralize(word, logs.length));
+        const { name, value } = this.generateEmbedField(logs, message);
         const valueLines = [value];
         if (logs.length > 10) {
             valueLines.push(`_... and ${logs.length - 10} more_`);
@@ -119,7 +113,7 @@ export class DiscordNotifier extends BaseNotifier<"Discord"> {
             value: valueLines.join("\n"),
         };
     }
-    private generateEmbedField(logs: NotifyPair[], title: string) {
+    private generateEmbedField(logs: UserLog[], title: string) {
         return {
             name: title,
             value: logs.slice(0, 10).map(this.formatNotify).join("\n"),

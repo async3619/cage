@@ -5,25 +5,18 @@ import chalk from "chalk";
 import prettyMilliseconds from "pretty-ms";
 import pluralize from "pluralize";
 
-import { UserRepository } from "@repositories/user";
-import { UserLogRepository } from "@repositories/user-log";
+import { UserRepository, User } from "@repositories/user";
+import { UserLogRepository, UserLog } from "@repositories/user-log";
 
-import { User, UserData } from "@repositories/models/user";
-import { UserLog, UserLogType } from "@root/repositories/models/user-log";
+import { DEFAULT_TASKS, TaskData } from "@tasks";
 
-import { Config } from "@utils/config";
-import { throttle } from "@utils/throttle";
-import { mapBy } from "@utils/mapBy";
-import { measureTime } from "@utils/measureTime";
-import { sleep } from "@utils/sleep";
-import { Logger } from "@utils/logger";
-import { Loggable } from "@utils/types";
-import { getDiff } from "@utils/getDiff";
+import { Config, throttle, measureTime, sleep, Logger, Loggable } from "@utils";
 
 export class App extends Loggable {
     private readonly followerDataSource: DataSource;
     private readonly userRepository: UserRepository;
     private readonly userLogRepository: UserLogRepository;
+    private readonly taskClasses = DEFAULT_TASKS;
 
     private cleaningUp = false;
     private config: Config | null = null;
@@ -71,8 +64,7 @@ export class App extends Loggable {
 
         this.config = await Config.create(this.configFilePath);
         if (!this.config) {
-            process.exit(-1);
-            return;
+            throw new Error("config is not loaded.");
         }
 
         const watchers = this.config.watchers;
@@ -154,114 +146,22 @@ export class App extends Loggable {
             throw new Error("Config is not loaded.");
         }
 
-        const startedDate = new Date();
-        const allUserData: UserData[] = [];
-        for (const [, watcher] of this.config.watchers) {
-            try {
-                const userData = await watcher.doWatch();
-
-                allUserData.push(...userData);
-            } catch (e) {
-                if (!(e instanceof Error)) {
-                    throw e;
-                }
-
-                this.logger.error("an error occurred while watching through `{green}`: {}", [
-                    watcher.getName(),
-                    e.message,
-                ]);
-
-                process.exit(-1);
-            }
-        }
-
-        this.logger.info(`all {} {} collected.`, [allUserData.length, pluralize("follower", allUserData.length)]);
-
-        const followingMap = await this.userLogRepository.getFollowStatusMap();
-        const oldUsers = await this.userRepository.find();
-        const oldUsersMap = mapBy(oldUsers, "id");
-
-        const newUsers = await this.userRepository.createFromData(allUserData, startedDate);
-        const newUserMap = mapBy(newUsers, "id");
-
-        // find user renaming their displayName or userId
-        const displayNameRenamedUsers = getDiff(newUsers, oldUsers, "uniqueId", "displayName");
-        const userIdRenamedUsers = getDiff(newUsers, oldUsers, "uniqueId", "userId");
-
-        // find users who are not followed yet.
-        const newFollowers = newUsers.filter(p => !followingMap[p.id]);
-        const unfollowers = oldUsers.filter(p => !newUserMap[p.id] && followingMap[p.id]);
-
-        const renameLogs: UserLog[] = [];
-        if (displayNameRenamedUsers.length || userIdRenamedUsers.length) {
-            const displayName = displayNameRenamedUsers.map(p => {
-                const oldUser = oldUsersMap[p.id];
-                const userLog = this.userLogRepository.create();
-                userLog.type = UserLogType.RenameDisplayName;
-                userLog.user = p;
-                userLog.oldDisplayName = oldUser?.displayName;
-                userLog.oldUserId = oldUser?.userId;
-
-                return userLog;
-            });
-
-            const userId = userIdRenamedUsers.map(p => {
-                const oldUser = oldUsersMap[p.id];
-                const userLog = this.userLogRepository.create();
-                userLog.type = UserLogType.RenameUserId;
-                userLog.user = p;
-                userLog.oldDisplayName = oldUser?.displayName;
-                userLog.oldUserId = oldUser?.userId;
-
-                return userLog;
-            });
-
-            renameLogs.push(...displayName, ...userId);
-        }
-
-        const newLogs = await this.userLogRepository.batchWriteLogs(
-            [
-                [newFollowers, UserLogType.Follow],
-                [unfollowers, UserLogType.Unfollow],
-            ],
-            renameLogs,
-        );
-
-        this.logger.info(`all {} {} saved`, [newLogs.length, pluralize("log", newLogs.length)]);
-
-        this.logger.info("tracked {} new {}", [newFollowers.length, pluralize("follower", newFollowers.length)]);
-        this.logger.info("tracked {} {}", [unfollowers.length, pluralize("unfollower", unfollowers.length)]);
-
-        const notifiers = this.config.notifiers;
-        if (!notifiers.length) {
-            this.logger.info("no notifiers are configured. skipping notification...");
-            return;
-        }
-
-        const ignoredIds = this.config.ignores;
-        if (ignoredIds.length) {
-            this.logger.info("ignoring {}", [pluralize("user", ignoredIds.length, true)]);
-
-            for (const log of newLogs) {
-                if (!ignoredIds.includes(log.user.id)) {
-                    continue;
-                }
-
-                newLogs.splice(newLogs.indexOf(log), 1);
-            }
-        }
-
-        if (newLogs.length <= 0) {
-            return;
-        }
-
-        const watcherMap = this.config.watcherMap;
-        for (const [, notifier] of notifiers) {
-            await notifier.notify(
-                newLogs.map(log => {
-                    return [watcherMap[log.user.from], log];
-                }),
+        const taskData: TaskData[] = [];
+        for (const TaskClass of this.taskClasses) {
+            const taskInstance = new TaskClass(
+                this.config.watchers.map(([, watcher]) => watcher),
+                this.config.notifiers.map(([, notifier]) => notifier),
+                this.userRepository,
+                this.userLogRepository,
+                TaskClass.name,
             );
+
+            const data = await taskInstance.doWork(taskData);
+            if (data.type === "terminate") {
+                return;
+            }
+
+            taskData.push(data);
         }
     };
 }

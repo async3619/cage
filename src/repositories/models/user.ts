@@ -2,8 +2,6 @@ import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, RelationId, Up
 
 import { UserLog } from "@root/repositories/models/user-log";
 
-export type UserData = Pick<User, "uniqueId" | "userId" | "from" | "displayName">;
-
 @Entity({ name: "users" })
 export class User extends BaseEntity {
     @Column({ type: "varchar", length: 255, primary: true })
@@ -23,6 +21,9 @@ export class User extends BaseEntity {
 
     @Column({ type: "datetime" })
     public lastlyCheckedAt!: Date;
+
+    @Column({ type: "varchar" })
+    public profileUrl!: string;
 
     @CreateDateColumn()
     public createdAt!: Date;

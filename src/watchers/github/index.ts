@@ -1,15 +1,18 @@
 import nodeFetch from "node-fetch";
 import { Client, CombinedError, createClient } from "@urql/core";
 
-import { BaseWatcher, BaseWatcherOptions, PartialUserData } from "@watchers/base";
+import { BaseWatcher, BaseWatcherOptions, PartialUser } from "@watchers/base";
 import { FollowersDocument, MeDocument } from "@watchers/github/queries";
 
 import { FollowersQuery, FollowersQueryVariables, MeQuery } from "@root/queries.data";
+import { isRequired } from "@utils/isRequired";
 import { Nullable } from "@utils/types";
 
 export interface GitHubWatcherOptions extends BaseWatcherOptions<GitHubWatcher> {
     authToken: string;
 }
+
+const isPartialUser = (user: PartialUser | null): user is PartialUser => Boolean(user);
 
 export class GitHubWatcher extends BaseWatcher<"GitHub"> {
     private client: Client;
@@ -35,13 +38,10 @@ export class GitHubWatcher extends BaseWatcher<"GitHub"> {
     public async initialize() {
         return;
     }
-    public getProfileUrl(user: PartialUserData) {
-        return `https://github.com/${user.userId}`;
-    }
 
     protected async getFollowers() {
         try {
-            const result: PartialUserData[] = [];
+            const result: PartialUser[] = [];
             const currentUserId = await this.getCurrentUserId();
 
             let cursor: string | undefined = undefined;
@@ -64,21 +64,17 @@ export class GitHubWatcher extends BaseWatcher<"GitHub"> {
                 } else if (e.graphQLErrors && e.graphQLErrors.length > 0) {
                     throw e.graphQLErrors[0];
                 }
-            } else {
-                throw e;
             }
-        }
 
-        return [];
+            throw e;
+        }
     }
 
     private async getCurrentUserId() {
         const { data, error } = await this.client.query<MeQuery>(MeDocument, {}).toPromise();
         if (error) {
             throw error;
-        }
-
-        if (!data) {
+        } else if (!data) {
             throw new Error("No data returned from Me query");
         }
 
@@ -87,44 +83,28 @@ export class GitHubWatcher extends BaseWatcher<"GitHub"> {
     private async getFollowersFromUserId(
         targetUserId: string,
         cursor?: string,
-    ): Promise<[PartialUserData[], Nullable<string>]> {
+    ): Promise<[PartialUser[], Nullable<string>]> {
         const { data, error } = await this.client
-            .query<FollowersQuery, FollowersQueryVariables>(FollowersDocument, {
-                username: targetUserId,
-                cursor,
-            })
+            .query<FollowersQuery, FollowersQueryVariables>(FollowersDocument, { username: targetUserId, cursor })
             .toPromise();
 
         if (error) {
             throw error;
-        }
-
-        if (!data) {
-            throw new Error("No data returned from Followers query");
-        }
-
-        if (!data.user) {
-            throw new Error("No user returned from Followers query");
-        }
-
-        if (!data.user.followers.edges) {
+        } else if (!data?.user?.followers?.edges) {
             throw new Error("No followers returned from Followers query");
         }
 
         return [
             data.user.followers.edges
-                .map<PartialUserData | null>(edge => {
-                    if (!edge?.node) {
-                        return null;
-                    }
-
-                    return {
-                        uniqueId: edge.node.id,
-                        userId: edge.node.login,
-                        displayName: edge.node.name || edge.node.login,
-                    };
-                })
-                .filter<PartialUserData>((item: PartialUserData | null): item is PartialUserData => Boolean(item)),
+                .map(edge => edge?.node)
+                .filter(isRequired)
+                .map<PartialUser | null>(node => ({
+                    uniqueId: node.id,
+                    userId: node.login,
+                    displayName: node.name || node.login,
+                    profileUrl: `https://github.com/${node.login}`,
+                }))
+                .filter<PartialUser>(isPartialUser),
             data.user.followers.pageInfo.endCursor,
         ];
     }

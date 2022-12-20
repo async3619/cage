@@ -27,12 +27,15 @@
         "paths": {
             "@root/*": ["./src/*"],
             "@utils/*": ["./src/utils/*"],
+            "@utils": ["./src/utils"],
             "@watchers/*": ["./src/watchers/*"],
             "@watchers": ["./src/watchers"],
             "@followers/*": ["./src/followers/*"],
             "@repositories/*": ["./src/repositories/*"],
             "@notifiers/*": ["./src/notifiers/*"],
-            "@notifiers": ["./src/notifiers"]
+            "@notifiers": ["./src/notifiers"],
+            "@tasks/*": ["./src/tasks/*"],
+            "@tasks": ["./src/tasks"]
         }
     }
 }

@@ -16,7 +16,7 @@ const LOG_LEVEL_COLOR_MAP: Record<LogLevel, Fn<string, string>> = {
     debug: chalk.magenta,
 };
 
-interface WorkOptions<T> {
+export interface WorkOptions<T> {
     level: LogLevel;
     message: string;
     failedLevel?: LogLevel;

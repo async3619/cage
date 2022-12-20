@@ -1,9 +1,7 @@
 import { TwitterApi, TwitterApiReadOnly } from "twitter-api-v2";
 import { TwitterApiRateLimitPlugin } from "@twitter-api-v2/plugin-rate-limit";
 
-import { UserData } from "@repositories/models/user";
-
-import { BaseWatcher, BaseWatcherOptions } from "@watchers/base";
+import { BaseWatcher, BaseWatcherOptions, PartialUser } from "@watchers/base";
 
 export interface TwitterWatcherOptions extends BaseWatcherOptions<TwitterWatcher> {
     bearerToken: string;
@@ -33,11 +31,8 @@ export class TwitterWatcher extends BaseWatcher<"Twitter"> {
         this.logger.verbose("Successfully initialized with user id {}", [data.id]);
         this.currentUserId = data.id;
     }
-    public getProfileUrl(user: UserData) {
-        return `https://twitter.com/${user.userId}`;
-    }
 
-    protected async getFollowers() {
+    protected async getFollowers(): Promise<PartialUser[]> {
         if (!this.currentUserId) {
             throw new Error("Watcher is not initialized");
         }
@@ -51,6 +46,7 @@ export class TwitterWatcher extends BaseWatcher<"Twitter"> {
             uniqueId: user.id,
             displayName: user.name,
             userId: user.username,
+            profileUrl: `https://twitter.com/${user.username}`,
         }));
     }
 }

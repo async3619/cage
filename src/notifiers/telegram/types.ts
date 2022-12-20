@@ -1,6 +1,3 @@
-import { SelectOnly } from "@utils/types";
-import { NotifyPair } from "@notifiers/type";
-
 export interface TelegramNotificationData {
     followers?: string;
     unfollowers?: string;
@@ -16,13 +13,4 @@ export interface TokenResponse {
 }
 export interface NotifyResponse {
     success: boolean;
-}
-
-export interface NotificationTarget {
-    fieldName: keyof SelectOnly<TelegramNotificationData, string>;
-    countFieldName: keyof SelectOnly<TelegramNotificationData, number>;
-    word: string;
-    template: string;
-    count: number;
-    pairs: NotifyPair[];
 }
