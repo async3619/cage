@@ -10,6 +10,7 @@ export interface BlueSkyWatcherOptions extends BaseWatcherOptions<BlueSkyWatcher
 
 export class BlueSkyWatcher extends BaseWatcher<"BlueSky"> {
     private agent: BskyAgent | null = null;
+    private userId: string | null = null;
 
     constructor(private readonly options: BlueSkyWatcherOptions) {
         super("BlueSky");
@@ -18,22 +19,24 @@ export class BlueSkyWatcher extends BaseWatcher<"BlueSky"> {
     public async initialize(): Promise<void> {
         this.agent = new BskyAgent({ service: this.options.service || "https://bsky.social" });
 
-        await this.agent.login({
+        const response = await this.agent.login({
             identifier: this.options.email,
             password: this.options.password,
         });
+
+        this.userId = response.data.did;
     }
 
     protected async getFollowers(): Promise<PartialUser[]> {
-        if (!this.agent) {
+        if (!this.agent || !this.userId) {
             throw new Error("Bluesky watcher has not initialized");
         }
 
-        let cursor: string | undefined;
+        let cursor: string | undefined = undefined;
         const result: PartialUser[] = [];
         while (true) {
             const { data } = await this.agent.getFollowers({
-                actor: "lunamoth.bsky.social",
+                actor: this.userId,
                 limit: 100,
                 cursor,
             });
