@@ -69,6 +69,30 @@
                                 "url"
                             ],
                             "additionalProperties": false
+                        },
+                        "bluesky": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "const": "bluesky"
+                                },
+                                "service": {
+                                    "type": "string"
+                                },
+                                "email": {
+                                    "type": "string"
+                                },
+                                "password": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "email",
+                                "password",
+                                "type"
+                            ],
+                            "additionalProperties": false
                         }
                     },
                     "additionalProperties": false
