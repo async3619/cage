@@ -18,7 +18,6 @@ function createMockUser(userId: string, displayName: string): Omit<User, keyof B
         createdAt: new Date(),
         updatedAt: new Date(),
         userLogs: [],
-        userLogIds: [],
     };
 }
 

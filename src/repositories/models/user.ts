@@ -1,4 +1,4 @@
-import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, RelationId, UpdateDateColumn } from "typeorm";
+import { BaseEntity, Column, CreateDateColumn, Entity, OneToMany, UpdateDateColumn } from "typeorm";
 
 import { UserLog } from "@root/repositories/models/user-log";
 
@@ -33,7 +33,4 @@ export class User extends BaseEntity {
 
     @OneToMany(() => UserLog, followerLog => followerLog.user, { cascade: true })
     public userLogs!: UserLog[];
-
-    @RelationId((follower: User) => follower.userLogs)
-    public userLogIds!: number[];
 }
