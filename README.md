@@ -82,6 +82,7 @@ services:
 |-----------|:--------:|
 | Twitter   |    ✅     |
 | GitHub    |    ✅     |
+| Mastodon  |    ✅     |
 | Instagram |    ❌     |
 | TikTok    |    ❌     |
 | YouTube   |    ❌     |
