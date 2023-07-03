@@ -48,6 +48,27 @@
                                 "type"
                             ],
                             "additionalProperties": false
+                        },
+                        "mastodon": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "const": "mastodon"
+                                },
+                                "url": {
+                                    "type": "string"
+                                },
+                                "accessToken": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "accessToken",
+                                "type",
+                                "url"
+                            ],
+                            "additionalProperties": false
                         }
                     },
                     "additionalProperties": false
