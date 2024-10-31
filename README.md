@@ -128,10 +128,13 @@ specify watching interval in millisecond format. minimal value is `60000`.
 
 #### twitter
 
+Internally, Cage uses [Rettiwt-API](https://github.com/Rishikant181/Rettiwt-API) to get the followers list. so you need to get the API Key with extensions that provided by the author. you can see the instruction [here](https://github.com/Rishikant181/Rettiwt-API#1-using-a-browser-recommended).
+
 ```json5
 {
     "type": "twitter", // required
-    "bearerToken": "bearer token of your twitter app" // string, required
+    "apiKey": "API Key that retrieved with X Auth Helper extension", // string, required
+    "username": "your twitter username", // string
 }
 ```
 
