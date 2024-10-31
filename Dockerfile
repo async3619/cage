@@ -1,4 +1,4 @@
-FROM node:22-alpine as builder
+FROM node:20.18-alpine as builder
 
 RUN apk add --update --no-cache curl git openssh openssl
 
@@ -18,7 +18,7 @@ ENV NODE_ENV ${NODE_ENV}
 
 RUN ["yarn", "build"]
 
-FROM node:22-alpine as prod-deps
+FROM node:20.18-alpine as prod-deps
 
 USER node
 WORKDIR /home/node
@@ -35,7 +35,7 @@ ENV NODE_ENV ${NODE_ENV}
 
 CMD [ "node", "dist/src/index" ]
 
-FROM node:22-alpine as production
+FROM node:20.18-alpine as production
 
 USER node
 WORKDIR /home/node
