@@ -1,29 +1,26 @@
-import { TwitterApi, TwitterApiReadOnly } from "twitter-api-v2";
-import { TwitterApiRateLimitPlugin } from "@twitter-api-v2/plugin-rate-limit";
+import { Cursor, Rettiwt, User } from "rettiwt-api";
 
 import { BaseWatcher, BaseWatcherOptions, PartialUser } from "@watchers/base";
 
 export interface TwitterWatcherOptions extends BaseWatcherOptions<TwitterWatcher> {
-    bearerToken: string;
+    apiKey: string;
     username: string;
 }
 
 export class TwitterWatcher extends BaseWatcher<"Twitter"> {
-    private readonly twitterClient: TwitterApiReadOnly;
+    private readonly twitterClient: Rettiwt;
     private readonly currentUserName: string;
+
     private currentUserId: string | null = null;
 
-    public constructor({ bearerToken, username }: TwitterWatcherOptions) {
+    public constructor({ apiKey, username }: TwitterWatcherOptions) {
         super("Twitter");
-        this.twitterClient = new TwitterApi(bearerToken, { plugins: [new TwitterApiRateLimitPlugin()] }).readOnly;
+        this.twitterClient = new Rettiwt({ apiKey });
         this.currentUserName = username;
     }
 
     public async initialize() {
-        const { data } = await this.twitterClient.v2.userByUsername(this.currentUserName, {
-            "user.fields": ["id"],
-        });
-
+        const data = await this.twitterClient.user.details(this.currentUserName);
         if (!data) {
             throw new Error("Failed to get user id");
         }
@@ -37,16 +34,23 @@ export class TwitterWatcher extends BaseWatcher<"Twitter"> {
             throw new Error("Watcher is not initialized");
         }
 
-        const followers = await this.twitterClient.v2.followers(this.currentUserId, {
-            max_results: 1000,
-            "user.fields": ["id", "name", "username", "profile_image_url"],
-        });
+        const users: User[] = [];
+        let cursor: Cursor | null = null;
+        while (true) {
+            const followers = await this.twitterClient.user.followers(this.currentUserId, 100, cursor?.value);
+            if (!followers.next.value || followers.list.length === 0) {
+                break;
+            }
 
-        return followers.data.map(user => ({
+            users.push(...followers.list);
+            cursor = followers.next;
+        }
+
+        return users.map(user => ({
             uniqueId: user.id,
-            displayName: user.name,
-            userId: user.username,
-            profileUrl: `https://twitter.com/${user.username}`,
+            displayName: user.fullName,
+            userId: user.userName,
+            profileUrl: `https://twitter.com/${user.userName}`,
         }));
     }
 }
