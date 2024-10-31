@@ -18,7 +18,7 @@
                                     "type": "string",
                                     "const": "twitter"
                                 },
-                                "bearerToken": {
+                                "apiKey": {
                                     "type": "string"
                                 },
                                 "username": {
@@ -26,7 +26,7 @@
                                 }
                             },
                             "required": [
-                                "bearerToken",
+                                "apiKey",
                                 "type",
                                 "username"
                             ],
