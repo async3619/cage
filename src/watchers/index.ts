@@ -5,15 +5,17 @@ import { MastodonWatcher, MastodonWatcherOptions } from "@watchers/mastodon";
 import { BlueSkyWatcher, BlueSkyWatcherOptions } from "@watchers/bluesky";
 
 import { TypeMap } from "@utils/types";
+import { InstagramWatcher, InstagramWatcherOptions } from "@watchers/instagram";
 
-export type WatcherClasses = TwitterWatcher | GitHubWatcher | MastodonWatcher | BlueSkyWatcher;
+export type WatcherClasses = TwitterWatcher | GitHubWatcher | MastodonWatcher | BlueSkyWatcher | InstagramWatcher;
 export type WatcherTypes = Lowercase<WatcherClasses["name"]>;
 
 export type WatcherOptions =
     | TwitterWatcherOptions
     | GitHubWatcherOptions
     | MastodonWatcherOptions
-    | BlueSkyWatcherOptions;
+    | BlueSkyWatcherOptions
+    | InstagramWatcherOptions;
 
 export type WatcherOptionMap = TypeMap<WatcherOptions>;
 
@@ -32,6 +34,7 @@ const AVAILABLE_WATCHERS: Readonly<WatcherFactoryMap> = {
     github: options => new GitHubWatcher(options),
     mastodon: options => new MastodonWatcher(options),
     bluesky: options => new BlueSkyWatcher(options),
+    instagram: options => new InstagramWatcher(options),
 };
 
 export const createWatcher = (options: BaseWatcherOptions): BaseWatcher<string> => {

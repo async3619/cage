@@ -89,6 +89,7 @@
         "fs-extra": "^11.1.0",
         "graphql": "^16.6.0",
         "graphql-tag": "^2.12.6",
+        "instagram-private-api": "^1.46.1",
         "lodash": "^4.17.21",
         "masto": "^5.11.3",
         "node-cron": "^3.0.2",
