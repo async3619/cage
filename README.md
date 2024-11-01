@@ -83,7 +83,7 @@ services:
 | Twitter   |    ✅     |
 | GitHub    |    ✅     |
 | Mastodon  |    ✅     |
-| Instagram |    ❌     |
+| Instagram |    ✅     |
 | TikTok    |    ❌     |
 | YouTube   |    ❌     |
 | Twitch    |    ❌     |
@@ -146,6 +146,22 @@ watcher configuration for GitHub service.
 {
     "type": "github", // required
     "authToken": "personal access token of your github account" // string, required
+}
+```
+
+#### instagram
+
+watcher configuration for Instagram service.
+
+```json5
+{
+    "type": "instagram", // required
+    "username": "your instagram username", // string, required
+    "password": "your instagram password", // string, required
+    "targetUserName": "target instagram username you want to crawl followers", // string, required
+    "requestDelay": 1000 // number, optional, default: 1000
+    // requestDelay is the delay time between each request to instagram server.
+    // this is to prevent getting banned from instagram server.
 }
 ```
 
