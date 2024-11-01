@@ -1,9 +1,9 @@
-name: Build and Deploy
+name: Docker Image Deploy
 
 on:
     push:
-        branches:
-            - dev
+        tags:
+            - "*"
 
 jobs:
     build-and-deploy:
@@ -13,16 +13,6 @@ jobs:
               uses: actions/checkout@v2.3.1
               with:
                   persist-credentials: false
-
-            - name: Cache nextjs build
-              uses: actions/cache@v2
-              with:
-                  path: ${{ github.workspace }}/.next/cache
-                  # Generate a new cache whenever packages or source files change.
-                  key: ${{ runner.os }}-nextjs-${{ hashFiles('**/yarn.lock') }}-${{ hashFiles('**.[jt]sx?') }}
-                  # If source files changed but packages didn't, rebuild from a prior cache.
-                  restore-keys: |
-                      ${{ runner.os }}-nextjs-${{ hashFiles('**/yarn.lock') }}-
 
             - name: Cache node_modules
               id: node-cache
@@ -39,7 +29,7 @@ jobs:
             - name: Install and Build
               uses: actions/setup-node@v3
               with:
-                  node-version: "18.x"
+                  node-version: "20.11.1"
 
             - name: Install yarn
               run: |
@@ -49,6 +39,10 @@ jobs:
               run: |
                   yarn
 
+            - name: Generate codes for GraphQL
+              run: |
+                yarn codegen
+
             - name: Lint
               run: |
                   yarn lint
@@ -57,13 +51,37 @@ jobs:
               env:
                   FORCE_COLOR: 3
               run: |
-                  yarn test
+                  yarn coverage --ci --verbose --testTimeout=10000
 
             - name: Codecov
               uses: codecov/codecov-action@v3
               with:
                   token: ${{ secrets.CODECOV_TOKEN }}
-                  name: solv
+                  name: cage
+
+            - name: Build
+              run: |
+                  yarn build
+
+            - name: Login to DockerHub
+              uses: docker/login-action@v1
+              with:
+                username: ${{ secrets.DOCKERHUB_USERNAME }}
+                password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+            - name: Set Environment Variable for Tagging
+              run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
+            - name: Build, tag, and push image to Docker Hub
+              env:
+                DOCKER_BUILDKIT: 1
+                GITHUB_OWNER: ${{ github.repository_owner }}
+                GITHUB_REPO: ${{ github.event.repository.name }}
+              run: |
+                docker build -t $GITHUB_OWNER/$GITHUB_REPO:$RELEASE_VERSION .
+                docker build -t $GITHUB_OWNER/$GITHUB_REPO:latest .
+                docker push $GITHUB_OWNER/$GITHUB_REPO:$RELEASE_VERSION
+                docker push $GITHUB_OWNER/$GITHUB_REPO:latest
 
             - uses: sarisia/actions-status-discord@v1
               if: always()

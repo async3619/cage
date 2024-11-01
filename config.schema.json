@@ -1,0 +1,203 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$ref": "#/definitions/ConfigData",
+    "definitions": {
+        "ConfigData": {
+            "type": "object",
+            "properties": {
+                "watchInterval": {
+                    "type": "number"
+                },
+                "watchers": {
+                    "type": "object",
+                    "properties": {
+                        "twitter": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "const": "twitter"
+                                },
+                                "apiKey": {
+                                    "type": "string"
+                                },
+                                "username": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "apiKey",
+                                "type",
+                                "username"
+                            ],
+                            "additionalProperties": false
+                        },
+                        "github": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "const": "github"
+                                },
+                                "authToken": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "authToken",
+                                "type"
+                            ],
+                            "additionalProperties": false
+                        },
+                        "mastodon": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "const": "mastodon"
+                                },
+                                "url": {
+                                    "type": "string"
+                                },
+                                "accessToken": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "accessToken",
+                                "type",
+                                "url"
+                            ],
+                            "additionalProperties": false
+                        },
+                        "bluesky": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "const": "bluesky"
+                                },
+                                "service": {
+                                    "type": "string"
+                                },
+                                "email": {
+                                    "type": "string"
+                                },
+                                "password": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "email",
+                                "password",
+                                "type"
+                            ],
+                            "additionalProperties": false
+                        },
+                        "instagram": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "const": "instagram"
+                                },
+                                "username": {
+                                    "type": "string"
+                                },
+                                "password": {
+                                    "type": "string"
+                                },
+                                "targetUserName": {
+                                    "type": "string"
+                                },
+                                "requestDelay": {
+                                    "type": "number"
+                                }
+                            },
+                            "required": [
+                                "password",
+                                "targetUserName",
+                                "type",
+                                "username"
+                            ],
+                            "additionalProperties": false
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "notifiers": {
+                    "type": "object",
+                    "properties": {
+                        "discord": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "const": "discord"
+                                },
+                                "webhookUrl": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "type",
+                                "webhookUrl"
+                            ],
+                            "additionalProperties": false
+                        },
+                        "telegram": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "const": "telegram"
+                                },
+                                "token": {
+                                    "type": "string"
+                                },
+                                "url": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "token",
+                                "type"
+                            ],
+                            "additionalProperties": false
+                        },
+                        "slack": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "const": "slack"
+                                },
+                                "webhookUrl": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "type",
+                                "webhookUrl"
+                            ],
+                            "additionalProperties": false
+                        }
+                    },
+                    "additionalProperties": false
+                },
+                "ignores": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            },
+            "required": [
+                "watchInterval",
+                "watchers",
+                "notifiers"
+            ],
+            "additionalProperties": false
+        }
+    }
+}

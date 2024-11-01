@@ -1,7 +1,5 @@
 {
     "compilerOptions": {
-        "strict": true,
-        "module": "commonjs",
         "declaration": false,
         "moduleResolution": "Node",
         "removeComments": true,
@@ -9,18 +7,35 @@
         "experimentalDecorators": true,
         "allowSyntheticDefaultImports": true,
         "target": "es2017",
-        "sourceMap": true,
         "inlineSourceMap": true,
         "resolveJsonModule": true,
         "outDir": "./dist",
-        "baseUrl": ".",
+        "esModuleInterop": true,
         "incremental": true,
         "skipLibCheck": true,
         "strictNullChecks": true,
         "noImplicitAny": false,
         "strictBindCallApply": true,
         "forceConsistentCasingInFileNames": false,
-        "noFallthroughCasesInSwitch": false
-    },
-    "exclude": ["node_modules", "**/*spec.ts", "./*.ts"]
+        "noFallthroughCasesInSwitch": false,
+        "module": "commonjs",
+        "strict": true,
+        "strictFunctionTypes": true,
+        "strictPropertyInitialization": true,
+        "baseUrl": "./",
+        "rootDir": ".",
+        "paths": {
+            "@root/*": ["./src/*"],
+            "@utils/*": ["./src/utils/*"],
+            "@utils": ["./src/utils"],
+            "@watchers/*": ["./src/watchers/*"],
+            "@watchers": ["./src/watchers"],
+            "@followers/*": ["./src/followers/*"],
+            "@repositories/*": ["./src/repositories/*"],
+            "@notifiers/*": ["./src/notifiers/*"],
+            "@notifiers": ["./src/notifiers"],
+            "@tasks/*": ["./src/tasks/*"],
+            "@tasks": ["./src/tasks"]
+        }
+    }
 }
