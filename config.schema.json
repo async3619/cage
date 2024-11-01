@@ -93,6 +93,34 @@
                                 "type"
                             ],
                             "additionalProperties": false
+                        },
+                        "instagram": {
+                            "type": "object",
+                            "properties": {
+                                "type": {
+                                    "type": "string",
+                                    "const": "instagram"
+                                },
+                                "username": {
+                                    "type": "string"
+                                },
+                                "password": {
+                                    "type": "string"
+                                },
+                                "targetUserName": {
+                                    "type": "string"
+                                },
+                                "requestDelay": {
+                                    "type": "number"
+                                }
+                            },
+                            "required": [
+                                "password",
+                                "targetUserName",
+                                "type",
+                                "username"
+                            ],
+                            "additionalProperties": false
                         }
                     },
                     "additionalProperties": false

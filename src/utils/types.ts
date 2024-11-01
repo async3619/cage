@@ -1,5 +1,7 @@
 import { Logger } from "@utils/logger";
 
+export type Resolve<T> = T extends Promise<infer U> ? U : T;
+
 export type SelectOnly<Record, Type extends Record[keyof Record]> = {
     [Key in keyof Required<Record> as Required<Record>[Key] extends Type ? Key : never]: Record[Key];
 };
